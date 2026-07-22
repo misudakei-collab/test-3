@@ -205,20 +205,27 @@ class AttendanceController extends Controller
         return view('admin.request_list', compact('pendingRequests', 'processedRequests'));
     }
 
-    /**
-     * 【FN050、FN051】修正申請の承認処理とデータ自動書き換え
+        /**
+     * 【PG13】修正申請承認画面（管理者用）
      */
     public function approveView($requestId)
     {
+        // 申請データと、申請した一般スタッフの情報を一緒に取得
         $requestData = AttendanceRequest::with('user')->findOrFail($requestId);
         return view('admin.approve_view', compact('requestData'));
     }
 
+    /**
+     * 【FN051】修正申請の承認処理（画面表示変更・同じページに留まる仕様）
+     */
     public function approveAction($requestId)
     {
         $attendanceRequest = AttendanceRequest::findOrFail($requestId);
+        
+        // ステータスを承認済み(approved)に変更
         $attendanceRequest->update(['status' => 'approved']);
 
+        // 勤怠本データを自動上書き更新
         $attendance = Attendance::updateOrCreate(
             ['id' => $attendanceRequest->attendance_id],
             [
@@ -229,6 +236,7 @@ class AttendanceController extends Controller
             ]
         );
 
+        // 休憩データも同様にリセットして申請内容で上書き更新
         $attendance->breakTimes()->delete();
         $breaks = json_decode($attendanceRequest->break_times, true);
         if (is_array($breaks)) {
@@ -242,6 +250,8 @@ class AttendanceController extends Controller
             }
         }
 
-        return redirect('/stamp_correction_request/list');
+        // 画面遷移させず、同じページに戻して「承認済み」グレーボタンに切り替えます
+        return redirect()->back();
     }
+
 }

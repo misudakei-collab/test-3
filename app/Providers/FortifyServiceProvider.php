@@ -63,5 +63,11 @@ class FortifyServiceProvider extends ServiceProvider
 
             return $user;
         });
+
+        // メール認証誘導画面（PG15）のビューを登録
+        Fortify::verifyEmailView(function () {
+            return view('auth.verify-email');
+        });
+
     }
 }

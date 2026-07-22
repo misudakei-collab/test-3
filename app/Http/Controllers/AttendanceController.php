@@ -41,9 +41,10 @@ class AttendanceController extends Controller
             }
         }
 
-        // 現在の日付（UI表示用）
-        Carbon::setLocale('ja');
-        $currentDate = Carbon::now()->isoFormat('YYYY年MM月DD日(ddd)');
+        // ロケールを日本語にセットして、曜日付き（(ddd)）のフォーマットで取得します
+        \Carbon\Carbon::setLocale('ja');
+        $currentDate = \Carbon\Carbon::now()->isoFormat('YYYY年M月D日(ddd)');
+
 
         return view('attendance.index', compact('status', 'currentDate', 'attendance'));
     }

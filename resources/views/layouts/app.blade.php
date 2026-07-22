@@ -7,43 +7,35 @@
     <!-- ビルドした最新デザインファイルの自動読み込み -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-white text-gray-900 font-sans min-h-screen flex flex-col">
+<body style="margin: 0 !important; padding: 0 !important; background-color: #ffffff !important; color: #111827 !important; font-family: sans-serif !important; min-height: 100vh !important; display: flex !important; flex-direction: column !important;">
 
-    <!-- ヘッダーエリア（ログイン状態に応じて幅と配置を自動最適化） -->
-    <header class="bg-black text-white">
-        @auth
-            <!-- 【ログイン時】仕様書通りの最大幅1540px、両端配置 -->
-            <div class="max-w-[1540px] min-w-[1400px] mx-auto px-10 h-16 flex items-center justify-between select-none">
-        @else
-            <!-- 【未ログイン時】画像通りロゴをシンプルに配置（幅を制限せず左寄せ） -->
-            <div class="w-full px-10 h-16 flex items-center select-none">
-        @endauth
+    <!-- 【最優先強制固定】ヘッダーエリアを一番上に絶対に固定するスタイル -->
+    <header style="order: -1 !important; background-color: #000000 !important; color: #ffffff !important; width: 100% !important; height: 64px !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important;">
+        <div style="width: 100% !important; max-w: 1200px !important; padding: 0 40px !important; display: flex !important; align-items: center !important; justify-content: space-between !important; box-sizing: border-box !important;">
             
             <!-- 左側：COACHTECH ロゴ -->
-            <div class="text-2xl font-black tracking-wider flex items-center">
+            <div style="font-size: 24px !important; font-weight: 900 !important; letter-spacing: 0.05em !important; user-select: none !important;">
                 COACHTECH
             </div>
             
             <!-- 右側：ナビゲーションメニュー -->
             @auth
-            <nav class="flex items-center space-x-8 text-sm font-bold tracking-normal">
+            <nav style="display: flex !important; align-items: center !important; gap: 32px !important; font-size: 14px !important; font-weight: bold !important;">
                 @if(auth()->user()->is_admin)
-                    <!-- 管理者用メニュー -->
-                    <a href="{{ route('admin.attendance.list') }}" class="hover:text-gray-300">勤怠一覧</a>
-                    <a href="{{ route('admin.staff.list') }}" class="hover:text-gray-300">スタッフ一覧</a>
-                    <a href="{{ route('stamp_correction_request.list') }}" class="hover:text-gray-300">申請一覧</a>
+                    <a href="{{ route('admin.attendance.list') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠一覧</a>
+                    <a href="{{ route('admin.staff.list') }}" style="color: #ffffff !important; text-decoration: none !important;">スタッフ一覧</a>
+                    <a href="{{ route('stamp_correction_request.list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請一覧</a>
                 @else
-                    <!-- 一般ユーザー（スタッフ）用メニュー -->
-                    <a href="{{ route('attendance.index') }}" class="hover:text-gray-300">勤怠</a>
-                    <a href="{{ route('attendance.list') }}" class="hover:text-gray-300">勤怠一覧</a>
-                    <a href="{{ route('stamp_correction_request.list') }}" class="hover:text-gray-300">申請</a>
-                    <a href="{{ route('attendance.report') }}" class="hover:text-gray-300">レポート</a>
+                    <a href="{{ route('attendance.index') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠</a>
+                    <a href="{{ route('attendance.list') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠一覧</a>
+                    <a href="{{ route('stamp_correction_request.list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請</a>
+                    <a href="{{ route('attendance.report') }}" style="color: #ffffff !important; text-decoration: none !important;">レポート</a>
                 @endif
                 
-                <!-- ログアウトリンク -->
-                <form method="POST" action="/logout" id="logout-form" class="inline">
+                <!-- ログアウト -->
+                <form method="POST" action="/logout" style="display: inline !important; margin: 0 !important;">
                     @csrf
-                    <button type="submit" class="hover:text-gray-300 font-bold focus:outline-none">
+                    <button type="submit" style="background: none !important; border: none !important; color: #ffffff !important; font-size: 14px !important; font-weight: bold !important; cursor: pointer !important; padding: 0 !important;">
                         ログアウト
                     </button>
                 </form>
@@ -52,16 +44,13 @@
         </div>
     </header>
 
-    <!-- メインコンテンツ（ログイン状態に合わせてコンテナ幅を最適化） -->
-    @auth
-        <main class="flex-grow max-w-[1540px] min-w-[1400px] mx-auto w-full px-10 py-12">
-    @else
-        <main class="flex-grow w-full px-10 py-12">
-    @endauth
+    <!-- メインコンテンツ -->
+    <main style="flex-grow: 1 !important; width: 100% !important; max-w: 1200px !important; margin: 0 auto !important; padding: 40px 40px !important; box-sizing: border-box !important;">
         @yield('content')
     </main>
 
-    <footer class="text-center py-4 text-xs text-gray-400 border-t border-gray-100 mt-auto">
+    <!-- フッター -->
+    <footer style="text-align: center !important; padding: 20px 0 !important; font-size: 12px !important; color: #9ca3af !important; border-top: 1px solid #f3f4f6 !important;">
         &copy; 2026 coachtech. All rights reserved.
     </footer>
 

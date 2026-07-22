@@ -1,85 +1,78 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-[800px] mx-auto py-12 text-center select-none">
-    
-    <!-- 退勤完了時のアラートメッセージ表示（FN022 完全一致） -->
-    @if(session('success'))
-        <div class="mb-8 p-4 bg-green-50 text-green-700 font-bold border border-green-200 rounded-sm max-w-[500px] mx-auto text-sm">
-            {{ session('success') }}
-        </div>
-    @endif
+<div class="flex flex-col items-center justify-center select-none" style="font-family: sans-serif !important; min-height: 60vh !important; padding-top: 40px !important;">
 
-    <!-- 出勤重複などのエラー用表示 -->
-    @if(session('error'))
-        <div class="mb-8 p-4 bg-red-50 text-red-700 font-bold border border-red-200 rounded-sm max-w-[500px] mx-auto text-sm">
-            {{ session('error') }}
-        </div>
-    @endif
+    <!-- 1. ステータスバッジ（見本通りの丸角グレーバッジ） -->
+    <div class="mb-6 flex items-center justify-center" style="height: 32px !important;">
+        <span style="background-color: #e5e7eb !important; color: #6b7280 !important; font-size: 12px !important; font-weight: bold !important; padding: 4px 16px !important; border-radius: 9999px !important; letter-spacing: 0.05em !important;">
+            {{ $status }}
+        </span>
+    </div>
 
-    <!-- 【FN018】日時情報取得・リアルタイム時計UI -->
-    <div class="text-lg font-bold text-gray-500 mb-2 tracking-wide">
+    <!-- 2. 現在の日付（見本通りの大きめの曜日付きフォーマット） -->
+    <div class="mb-4 text-center" style="color: #111827 !important; font-size: 24px !important; font-weight: 500 !important; letter-spacing: 0.02em !important;">
         {{ $currentDate }}
     </div>
-    <div id="live-clock" class="text-6xl font-black tracking-widest text-gray-900 mb-14">
-        00:00:00
+
+    <!-- 3. デジタル時計（見本通りの超極太・大迫力フォント） -->
+    <div id="digital-clock" class="mb-12 text-center" style="color: #000000 !important; font-size: 84px !important; font-weight: 900 !important; tracking-wide !important; line-height: 1 !important; font-family: monospace, sans-serif !important;">
+        08:00
     </div>
 
-    <!-- 打刻ボタンエリア（ステータスに応じて排他制御・デザイン最適化） -->
-    <div class="grid grid-cols-2 gap-x-8 gap-y-6 max-w-[550px] mx-auto">
-        
-        <!-- 出勤ボタン（FN020） -->
-        <form method="POST" action="/attendance/clock-in">
-            @csrf
-            <button type="submit" 
-                @if($status !== '勤務外') disabled @endif
-                class="w-full h-24 text-lg font-bold rounded-sm transition-all duration-200 shadow-sm
-                @if($status === '勤務外') bg-black text-white hover:bg-gray-800 active:scale-[0.98] @else bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200 shadow-none @endif">
-                出勤
-            </button>
-        </form>
-
-        <!-- 退勤ボタン（FN022） -->
-        <form method="POST" action="/attendance/clock-out">
-            @csrf
-            <button type="submit" 
-                @if($status !== '出勤中') disabled @endif
-                class="w-full h-24 text-lg font-bold rounded-sm transition-all duration-200 shadow-sm
-                @if($status === '出勤中') bg-black text-white hover:bg-gray-800 active:scale-[0.98] @else bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200 shadow-none @endif">
-                退勤
-            </button>
-        </form>
-
-        <!-- 休憩入 / 休憩戻ボタン（FN021 / 横いっぱいの配置） -->
-        <form method="POST" action="/attendance/break" class="col-span-2">
-            @csrf
-            @if($status === '休憩中')
-                <button type="submit" class="w-full h-24 text-lg font-bold bg-white border border-black text-black rounded-sm hover:bg-gray-50 active:scale-[0.98] transition-all duration-200 shadow-sm">
+    <!-- 4. 打刻ボタン・メッセージエリア（ステータスに応じて表示を見本に完全一致） -->
+    <div class="w-full flex justify-center">
+        @if($status === '勤務外')
+            <!-- 【出勤前】黒い「出勤」ボタン -->
+            <form method="POST" action="/attendance/clock-in" style="margin: 0 !important;">
+                @csrf
+                <button type="submit" class="bg-black text-white text-base font-bold hover:bg-gray-800 transition tracking-wider shadow-sm" style="width: 160px !important; height: 48px !important; border-radius: 8px !important; letter-spacing: 0.1em !important;">
+                    出勤
+                </button>
+            </form>
+        @elseif($status === '出勤中')
+            <!-- 【出勤後】「退勤（黒）」と「休憩入（白）」が横並び -->
+            <div class="flex items-center" style="gap: 24px !important;">
+                <form method="POST" action="/attendance/clock-out" style="margin: 0 !important;">
+                    @csrf
+                    <button type="submit" class="bg-black text-white text-base font-bold hover:bg-gray-800 transition tracking-wider shadow-sm" style="width: 160px !important; height: 48px !important; border-radius: 8px !important; letter-spacing: 0.1em !important;">
+                        退勤
+                    </button>
+                </form>
+                <form method="POST" action="/attendance/break" style="margin: 0 !important;">
+                    @csrf
+                    <button type="submit" class="bg-white text-black text-base font-bold border border-gray-300 hover:bg-gray-50 transition tracking-wider shadow-sm" style="width: 160px !important; height: 48px !important; border-radius: 8px !important; letter-spacing: 0.1em !important;">
+                        休憩入
+                    </button>
+                </form>
+            </div>
+        @elseif($status === '休憩中')
+            <!-- 【休憩中】白い「休憩戻」ボタン -->
+            <form method="POST" action="/attendance/break" style="margin: 0 !important;">
+                @csrf
+                <button type="submit" class="bg-white text-black text-base font-bold border border-gray-300 hover:bg-gray-50 transition tracking-wider shadow-sm" style="width: 160px !important; height: 48px !important; border-radius: 8px !important; letter-spacing: 0.1em !important;">
                     休憩戻
                 </button>
-            @else
-                <button type="submit" 
-                    @if($status !== '出勤中') disabled @endif
-                    class="w-full h-24 text-lg font-bold rounded-sm transition-all duration-200 shadow-sm
-                    @if($status === '出勤中') bg-white border border-black text-black hover:bg-gray-50 active:scale-[0.98] @else bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200 shadow-none @endif">
-                    休憩入
-                </button>
-            @endif
-        </form>
-
+            </form>
+        @else
+            <!-- ★【見本完全一致】退勤後はボタンを非表示にし、お疲れ様でした。のテキストを綺麗に配置 -->
+            <div style="color: #000000 !important; font-size: 16px !important; font-weight: bold !important; letter-spacing: 0.05em !important; height: 48px !important; display: flex !important; align-items: center !important; justify-content: center !important;">
+                お疲れ様でした。
+            </div>
+        @endif
     </div>
+
 </div>
 
-<!-- フロントエンド側でのデジタル時計の秒刻みJavaScript -->
+<!-- リアルタイムでデジタル時計を1秒ごとに刻むJavaScript -->
 <script>
     function updateClock() {
         const now = new Date();
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('live-clock').textContent = `${hours}:${minutes}:${seconds}`;
+        document.getElementById('digital-clock').textContent = `${hours}:${minutes}`;
     }
-    setInterval(updateClock, 1000);
     updateClock();
+    setInterval(updateClock, 1000);
 </script>
 @endsection
