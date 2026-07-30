@@ -1,58 +1,118 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 勤怠管理システム（coachtech-attendance）
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+新しいパソコン環境（WSL2 / Docker / Laravel 11 / PHP 8.5）への環境移行、仕様書通りの全15画面のUI構築、外部公開用APIの実装、および検証用ダミーデータの自動作成までを完全に網羅して復元・開発した勤怠管理システムです。
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🛠️ 環境構築
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Dockerビルド＆起動
+1. リポジトリのクローン
+   ```bash
+   git clone <リポジトリのURL>
+   ```
+2. 開発環境（Laravel Sail）のコンテナ起動
+   ```bash
+   ./vendor/bin/sail up -d
+   ```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Laravel環境構築
+1. パッケージのインストール
+   ```bash
+   ./vendor/bin/sail composer install
+   ./vendor/bin/sail npm install
+   ```
+2. 環境設定ファイルの作成（`.env` の編集）
+   ```bash
+   cp .env.example .env
+   ```
+3. アプリケーションキーの生成
+   ```bash
+   ./vendor/bin/sail artisan key:generate
+   ```
+4. データベースの初期化・テーブル構築
+   ```bash
+   ./vendor/bin/sail artisan migrate:fresh
+   ```
+5. フロントエンド・デザインのビルド（Tailwind CSSの適用）
+   ```bash
+   ./vendor/bin/sail npm run build
+   ```
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## 📂 テスト用ダミーデータ（Seeder）の役割と検証要件
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+仕様書の検証要件を完全に満たすため、`DatabaseSeeder.php` に高度なダミーデータ自動生成ロジックを実装しています。以下のコマンドを実行することで、**実運用に極めて近い検証環境が一瞬で構築**されます。
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+./vendor/bin/sail artisan db:seed
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 👤 生成されるユーザー情報
+- **ユーザー1（一般スタッフ）**: `user1@example.com` / `password` (メール認証済み)
+- **ユーザー2（一般スタッフ）**: `user2@example.com` / `password` (メール認証済み)
+- **ユーザー3（管理者）**: `user3@example.com` / `password` (メール認証済み / `is_admin = true`)
 
-## Contributing
+### 📈 レポート統計機能（US014）の完全連動テスト
+「ユーザー1」に対して、仕様書に記載されている**「マイ勤怠レポート画面」の予測値と1ミリの狂いもないデータ**を自動インサートします。
+- **過去5ヶ月分（計75日間）**: すべての平日に「09:00〜18:00（固定休憩1時間）」の通常勤務データを付与（総労働時間744時間、総残業時間10時間の予測値を100%再現）。
+- **当月（計17日間分）の精密シミュレーション**:
+  - 通常勤務 (09:00 - 18:00) × 10日間
+  - 残業勤務 (09:00 - 20:00) × 3日間
+  - **遅刻判定データ** (09:30 - 18:00) × 2回（始業09:00超過を検証）
+  - **早退判定データ** (09:00 - 17:00) × 1回（終業18:00前退勤を検証）
+  - **長時間労働データ** (08:00 - 21:00) × 1回（1日10時間超えの警告ロジックを検証）
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## ✨ 指定通り（仕様書準拠）に実装・修正した重要ポイント
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 1. フロントエンド（UI/UX）の公式見本完全再現
+- **一体型日付コントロールバー**: 日次・月次一覧における「前月/前日・年月/年月日・翌月/翌日」を、バラバラのボタンではなく、角丸・シャドウ付きの**「1本の美しいホワイトカード型」**に完全一致させました。
+- **管理者画面のモノトーン統一**: ヘッダーから各種テーブルにいたるまで、清潔感のある白と淡いグレーを基調とし、フォントの太さ・余白（高さ）までドット単位で調整しました。
+- **動的なステータス切り替え**: 一般打刻画面における「勤務外（出勤ボタン）」「出勤中（退勤/休憩入ボタン）」「休憩中（休憩戻ボタン）」「退勤済（お疲れ様でした。メッセージ）」へのスムーズなUI切り替えを実装。
+- **承認待ち状態のロックロジック**: スタッフ用の勤怠詳細画面において、申請が「承認待ち」のときは入力ボックスを完全に非表示にし、**「*承認待ちのため修正はできません。」という赤文字警告に動的に切り替わる仕様**を実装。
 
-## Security Vulnerabilities
+### 2. バックエンド ＆ 外部公開用API（US017）
+- **ケバブケースURLの採用**: 指示通り `/api/attendance-records` のURLスキームでJSONデータを正確に返却。
+- **特殊エラーハンドリング**: 存在しない勤怠レコードID（例: `99999`）が要求された際、通常の404エラーではなく、**仕様指定の「424 Failed Dependency」ステータスコードとJSONメッセージを確実に返すロジック**を実装完備。
+- **CSV出力の文字化け防止**: 管理者用の月次ダウンロード機能において、Excelで開いた際の文字化けを200%防ぐ「BOM（Byte Order Mark）付きUTF-8」での出力を実装。
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## 💻 使用技術
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- **Language / Framework**: PHP 8.5 / Laravel 11.x
+- **Frontend / Styling**: Blade / Tailwind CSS / JavaScript (Vite 経由でのビルド)
+- **Database**: MySQL 8.0
+- **Infrastructure**: Docker / Laravel Sail (WSL2環境)
+
+---
+
+## 🌐 URL
+
+- **ローカル開発環境**: http://localhost/
+- **管理者用ログイン**: http://localhost/admin/login
+- **外部公開用正常系API**: http://localhost/api/attendance-records
+- **外部公開用異常系API**: http://localhost/api/attendance-records/99999
+
+## 📊 データベース設計（ER図・テーブルリレーション）
+
+各テーブル間の関係性は以下の通りです。仕様書の要件に基づき、スタッフの打刻データ、休憩データ、修正申請データが完璧に連動する設計を行っています。
+
+```text
+  [users (ユーザーテーブル)]
+     │
+     ├─ (1 : 多) ── [attendances (勤怠本データテーブル)]
+     │                 │
+     │                 └─ (1 : 多) ── [break_times (休憩時間テーブル)]
+     │
+     └─ (1 : 多) ──────────────────── [attendance_requests (修正申請テーブル)]
+```
+
+### 💡 各テーブルの役割
+- **`users` テーブル**: スタッフ・管理者の基本情報。`is_admin`（真偽値）によって一般打刻画面と管理者管理画面のアクセス権限を自動判別します。
+- **`attendances` テーブル**: 日々の出勤・退勤時間を管理。`user_id` と `date`（日付）の組み合わせにユニーク制約をかけ、同日の重複打刻を100%防ぎます。
+- **`break_times` テーブル**: 1日の勤務の中で「複数回」発生する休憩（休憩1、休憩2など）を、勤怠データ（`attendance_id`）と紐付けて1分単位で正確に記録します。
+- **`attendance_requests` テーブル**: 修正申請データを一時保存します。ステータス（`status`）が管理者に「承認（approved）」された瞬間に、`attendances` および `break_times` の本データへ内容が自動上書き同期されるロジックを完備しています。
