@@ -90,29 +90,124 @@
 
 ---
 
-## 🌐 URL
-
-- **ローカル開発環境**: http://localhost/
-- **管理者用ログイン**: http://localhost/admin/login
-- **外部公開用正常系API**: http://localhost/api/attendance-records
-- **外部公開用異常系API**: http://localhost/api/attendance-records/99999
-
 ## 📊 データベース設計（ER図・テーブルリレーション）
 
-各テーブル間の関係性は以下の通りです。仕様書の要件に基づき、スタッフの打刻データ、休憩データ、修正申請データが完璧に連動する設計を行っています。
+仕様書の要件に基づき、スタッフの打刻データ、休憩データ、修正申請データが完璧に連動する設計を行っています。GitHub上では以下のコードが自動的に美しいグラフィカルなER図として描画されます。
 
-```text
-  [users (ユーザーテーブル)]
-     │
-     ├─ (1 : 多) ── [attendances (勤怠本データテーブル)]
-     │                 │
-     │                 └─ (1 : 多) ── [break_times (休憩時間テーブル)]
-     │
-     └─ (1 : 多) ──────────────────── [attendance_requests (修正申請テーブル)]
+```mermaid
+erDiagram
+    users ||--o{ attendances : "1 : 多 (勤怠記録)"
+    users ||--o{ attendance_requests : "1 : 多 (修正申請)"
+    attendances ||--o{ break_times : "1 : 多 (休憩記録)"
+
+    users {
+        bigint id PK "自動インクリメント"
+        string name "ユーザー名"
+        string email "メールアドレス (ユニーク)"
+        string password "ハッシュ化パスワード"
+        boolean is_admin "管理者フラグ (true: 管理者 / false: 一般)"
+        timestamp email_verified_at "メール認証日時"
+    }
+
+    attendances {
+        bigint id PK "自動インクリメント"
+        bigint user_id FK "users.id 参照"
+        date date "勤務日 (user_idとの複合ユニーク制約)"
+        time clock_in "出勤時刻"
+        time clock_out "退勤時刻 (任意)"
+    }
+
+    break_times {
+        bigint id PK "自動インクリメント"
+        bigint attendance_id FK "attendances.id 参照"
+        time break_in "休憩開始時刻"
+        time break_out "休憩終了時刻 (任意)"
+    }
+
+    attendance_requests {
+        bigint id PK "自動インクリメント"
+        bigint user_id FK "users.id 参照"
+        bigint attendance_id FK "attendances.id 参照"
+        date date "対象日"
+        time clock_in "申請出勤時刻"
+        time clock_out "申請退勤時刻"
+        json break_times "申請休憩時間配列 (JSON形式)"
+        string remarks "申請理由・備考"
+        string status "承認ステータス (pending / approved)"
+    }
 ```
+
+### 💡 各テーブルの役割と制約のこだわり
+- **`users` テーブル**: `is_admin` によって一般打刻画面と管理者画面のアクセス権限を自動判別します。
+- **`attendances` テーブル**: `user_id` と `date` の組み合わせに **複合ユニーク制約（Unique Constraint）** をかけ、同日の重複打刻を100%防ぎます。
+- **`break_times` テーブル**: 1日の勤務の中で「複数回」発生する休憩（休憩1、休憩2等）を、勤怠本データ（`attendance_id`）と紐付けて正確に記録します。
+- **`attendance_requests` テーブル**: 修正申請データを一時保存します。ステータス（`status`）が管理者に「承認（`approved`）」された瞬間に、`attendances` および `break_times` の本データへ内容が自動上書き同期されるロジックを完備しています。
+
 
 ### 💡 各テーブルの役割
 - **`users` テーブル**: スタッフ・管理者の基本情報。`is_admin`（真偽値）によって一般打刻画面と管理者管理画面のアクセス権限を自動判別します。
 - **`attendances` テーブル**: 日々の出勤・退勤時間を管理。`user_id` と `date`（日付）の組み合わせにユニーク制約をかけ、同日の重複打刻を100%防ぎます。
 - **`break_times` テーブル**: 1日の勤務の中で「複数回」発生する休憩（休憩1、休憩2など）を、勤怠データ（`attendance_id`）と紐付けて1分単位で正確に記録します。
 - **`attendance_requests` テーブル**: 修正申請データを一時保存します。ステータス（`status`）が管理者に「承認（approved）」された瞬間に、`attendances` および `break_times` の本データへ内容が自動上書き同期されるロジックを完備しています。
+
+## 📋 基本設計書（Route, Controller, Model）
+
+提出用アプリケーションと仕様が完全一致しているルート、コントローラー、およびモデルの設計一覧です。
+
+### 1. Route & Controller 一覧
+
+| 画面名称 | バス | メソッド | ルート先コントローラー | アクション | 認証必須 | 説明 |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 会員登録画面（一般ユーザー） | `/register` | GET/POST | Fortify（内部処理） | - | 制限なし | 一般スタッフのアカウント新規登録 |
+| ログイン画面（一般ユーザー） | `/login` | GET/POST | Fortify（内部処理） | - | 制限なし | 一般スタッフのログイン |
+| 出勤登録画面（一般ユーザー） | `/attendance` | GET | `AttendanceController` | `index` | 必須 | 打刻用ホーム画面（勤務外/出勤中/休憩中/退勤済） |
+| 勤怠一覧画面（一般ユーザー） | `/attendance/list` | GET | `AttendanceController` | `list` | 必須 | 自身の月次勤怠レコード一覧の閲覧 |
+| 勤怠詳細画面（一般ユーザー） | `/attendance/detail/{id}` | GET/POST | `AttendanceController` | `detail` | 必須 | 勤怠の確認、および修正申請（pending）の送信 |
+| 申請一覧画面（一般ユーザー） | `/stamp_correction_request/list`| GET | `AttendanceController` | `requestList` | 必須 | 自身が提出した修正申請（承認待ち/承認済み）の一覧 |
+| ログイン画面（管理者） | `/admin/login` | GET/POST | `Admin\AttendanceController`| `showLogin` | 制限なし | 管理者専用のログイン認証 |
+| 勤怠一覧画面（管理者） | `/admin/attendance/list` | GET | `Admin\AttendanceController`| `list` | 必須（管理）| 当日の全スタッフ勤怠一覧の閲覧、および日付変更 |
+| 勤怠詳細画面（管理者） | `/admin/attendance/{id}` | GET/POST | `Admin\AttendanceController`| `detail` | 必須（管理）| 管理者によるスタッフ勤怠データの直接修正・更新 |
+| スタッフ一覧画面（管理者） | `/admin/staff/list` | GET | `Admin\AttendanceController`| `staffList` | 必須（管理）| 登録されている全一般スタッフのリスト閲覧 |
+| スタッフ別勤怠一覧画面（管理者）| `/admin/attendance/staff/{id}` | GET | `Admin\AttendanceController`| `staffAttendance`| 必須（管理）| 選択したスタッフの月次一覧閲覧、およびCSV出力 |
+| 申請一覧画面（管理者） | `/admin/stamp_correction_request/list`| GET | `Admin\AttendanceController`| `requestList` | 必須（管理）| 全スタッフから提出された承認待ち申請の一覧表示 |
+| 修正申請承認画面（管理者） | `/admin/stamp_correction_request/approve/{id}`| GET/POST | `Admin\AttendanceController`| `approveView`<br>`approveAction`| 必須（管理）| 申請内容の確認、および1ボタンによる承認・本データ同期 |
+
+### 2. Model 一覧
+
+| モデルファイル名 | 説明 |
+| :--- | :--- |
+| `User.php` | 利用者情報を管理（一般スタッフ／管理者を `is_admin` フラグで識別、最新の `#[Fillable]` 属性仕様） |
+| `Attendance.php` | 日々の出勤時間（`clock_in`）および退勤時間（`clock_out`）の本データを日付単位で管理 |
+| `BreakTime.php` | 1勤務に対して複数回（休憩1、休憩2等）取得可能な休憩の開始・終了時間を管理 |
+| `AttendanceRequest.php`| スタッフから提出された修正申請データ、および承認ステータス（`pending`/`approved`）を管理 |
+
+### 3. View（bladeファイル名）一覧
+
+アプリケーションを構成する全13画面のBladeテンプレートの配置構造です。
+
+| 画面名称 | bladeファイル名 |
+| :--- | :--- |
+| 会員登録画面（一般ユーザー） | `auth/register.blade.php` |
+| ログイン画面（一般ユーザー） | `auth/login.blade.php` |
+| 出勤登録画面（一般ユーザー） | `attendance/index.blade.php` |
+| 勤怠一覧画面（一般ユーザー） | `attendance/list.blade.php` |
+| 勤怠詳細画面（一般ユーザー） | `attendance/detail.blade.php` |
+| 申請一覧画面（一般ユーザー） | `attendance/request_list.blade.php` |
+| ログイン画面（管理者） | `admin/login.blade.php` |
+| 勤怠一覧画面（管理者） | `admin/attendance_list.blade.php` |
+| 勤怠詳細画面（管理者） | `admin/detail.blade.php` |
+| スタッフ一覧画面（管理者） | `admin/staff_list.blade.php` |
+| スタッフ別勤怠一覧画面（管理者）| `admin/staff_attendance.blade.php` |
+| 申請一覧画面（管理者） | `admin/request_list.blade.php` |
+| 修正申請承認画面（管理者） | `admin/approve_view.blade.php` |
+
+### 4. バリデーション一覧
+
+アプリケーション内で実行される各フォームの入力チェックルールと対象ファイルの一覧です。
+
+| バリデーションファイル名 | フォーム | ルール |
+| :--- | :--- | :--- |
+| `app/Actions/Fortify/CreateNewUser.php` | 会員登録画面（一般ユーザー） | ・`name`: 必須 / 文字列 / 最大255文字<br>・`email`: 必須 / 文字列 / メールアドレス形式 / 最大255文字 / `users`テーブルで重複不可<br>・`password`: 必須 / 文字列 / 最低8文字 / 確認用パスワードと一致 |
+| `app/Http/Requests/LoginRequest.php`<br>※Fortify内部仕様を含む | ログイン画面（一般ユーザー・管理者共通） | ・`email`: 必須 / 文字列 / メールアドレス形式<br>・`password`: 必須 / 文字列 |
+| `app/Http/Requests/AttendanceCorrectionRequest.php`| 勤怠詳細画面（一般・管理者共通の修正時） | ・`clock_in`: 必須 / 時間形式（`HH:MM`）<br>・`clock_out`: 必須 / 時間形式（`HH:MM`）/ `clock_in`より後の時刻であること<br>・`breaks.*.break_in`: 任意 / 時間形式（`HH:MM`）<br>・`breaks.*.break_out`: 任意 / 時間形式（`HH:MM`）/ 紐づく`break_in`より後の時刻であること<br>・`remarks`: 必須（一般スタッフのみ）/ 文字列 / 最大255文字 |
+
