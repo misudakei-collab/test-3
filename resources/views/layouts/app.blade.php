@@ -24,11 +24,11 @@
                 @if(auth()->user()->is_admin)
                     <a href="{{ route('admin.attendance.list') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠一覧</a>
                     <a href="{{ route('admin.staff.list') }}" style="color: #ffffff !important; text-decoration: none !important;">スタッフ一覧</a>
-                    <a href="{{ route('stamp_correction_request.list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請一覧</a>
+                    <a href="{{ route('admin.request_list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請一覧</a>
                 @else
                     <a href="{{ route('attendance.index') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠</a>
                     <a href="{{ route('attendance.list') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠一覧</a>
-                    <a href="{{ route('stamp_correction_request.list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請</a>
+                    <a href="{{ route('admin.request_list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請</a>
                     <a href="{{ route('attendance.report') }}" style="color: #ffffff !important; text-decoration: none !important;">レポート</a>
                 @endif
                 
