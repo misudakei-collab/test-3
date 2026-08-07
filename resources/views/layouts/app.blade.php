@@ -28,7 +28,7 @@
                 @else
                     <a href="{{ route('attendance.index') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠</a>
                     <a href="{{ route('attendance.list') }}" style="color: #ffffff !important; text-decoration: none !important;">勤怠一覧</a>
-                    <a href="{{ route('admin.request_list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請</a>
+                    <a href="{{ route('attendance.request_list') }}" style="color: #ffffff !important; text-decoration: none !important;">申請一覧</a>
                     <a href="{{ route('attendance.report') }}" style="color: #ffffff !important; text-decoration: none !important;">レポート</a>
                 @endif
                 

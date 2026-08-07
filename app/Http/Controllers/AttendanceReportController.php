@@ -14,9 +14,13 @@ class AttendanceReportController extends Controller
      */
     public function index()
     {
-        // 1. シーダーで大量のデータを作った「ユーザー1(一般)」のIDで強制固定し、連動漏れを完全に防ぎます
-        $targetUser = User::where('name', 'like', '%ユーザー1%')->first();
-        $userId = $targetUser ? $targetUser->id : 1;
+        // 1. ★【完全動的化】ログインしている本人のIDを取得します
+        $userId = auth()->id();
+
+        if (!$userId) {
+            return redirect('/login');
+        }
+
 
         // シーダーの作成日付と完全同期させた「2026-03 〜 2026-08」の6ヶ月枠
         $months = ['2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08'];

@@ -21,10 +21,11 @@
         <form method="POST" action="/email/verification-notification" style="margin: 0 !important; display: inline-block;">
             @csrf
             <!-- ※実務テスト用に、押すと認証をシミュレートする、または再送を兼ねる見本通りのボタンデザインです -->
-            <button type="submit" class="border border-gray-400 bg-gray-200 text-gray-900 font-bold hover:bg-gray-300 transition" 
-                style="width: 180px !important; height: 38px !important; border-radius: 4px !important; font-size: 14px !important; letter-spacing: 0.02em !important; box-sizing: border-box !important;">
+           <button type="submit" onclick="window.open('http://localhost:8025', '_blank');" class="border border-gray-400 bg-gray-200 text-gray-900 font-bold hover:bg-gray-300 transition" 
+            style="width: 188px !important; height: 38px !important; border-radius: 4px !important; font-size: 14px !important; letter-spacing: 0.02em !important; box-sizing: border-box !important;">
                 認証はこちらから
             </button>
+
         </form>
     </div>
 

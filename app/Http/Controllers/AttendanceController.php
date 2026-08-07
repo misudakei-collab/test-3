@@ -300,4 +300,82 @@ class AttendanceController extends Controller
         // ★【修正ライン】compactの中に $approvedRequests を追加して画面に送ります
         return view('attendance.request_list', compact('pendingRequests', 'approvedRequests'));
     }
+
+        /**
+     * 【PG05/US009】一般スタッフ用：勤怠詳細画面からの修正申請（pending）の送信処理
+     */
+    /**
+     * 【PG05/US009】一般スタッフ用：勤怠詳細画面からの修正申請（pending）の送信処理
+     */
+    public function updateDetail(Request $request, $id)
+    {
+        // ★【最重要修正】修正理由（remarks）が空っぽのときにデータベースエラーになるのを防ぐバリデーション
+        $request->validate([
+            'remarks' => 'required|string|max:255',
+        ], [
+            'remarks.required' => '修正理由を記入してください。',
+        ]);
+
+        $attendance = \App\Models\Attendance::findOrFail($id);
+
+        // 仕様書要件：申請テーブル（attendance_requests）にpending状態で一時保存します
+        \App\Models\AttendanceRequest::create([
+            'user_id' => auth()->id(),
+            'attendance_id' => $attendance->id,
+            'date' => $attendance->date,
+            'clock_in' => $request->input('clock_in'),
+            'clock_out' => $request->input('clock_out'),
+            'break_times' => json_encode($request->input('breaks', [])), // 休憩時間データをJSON形式で保存
+            'remarks' => $request->input('remarks'), // 必須チェックを通った確実な修正理由
+            'status' => 'pending', // 承認待ち状態
+        ]);
+
+        // 申請送信後は、自身が提出した申請一覧画面へリダイレクト
+        return redirect('/stamp_correction_request/list');
+    }
+
+    /**
+     * 💡【打刻完全開通】画面からの /attendance/break を受け取り、休憩の開始と終了をデータベースに保存する関数
+     */
+    public function breakToggle(Request $request)
+    {
+        $userId = auth()->id();
+        $todayStr = \Carbon\Carbon::now()->format('Y-m-d');
+        $nowTimeStr = \Carbon\Carbon::now()->format('H:i:s');
+
+        // 1. 本日の勤怠レコード（出勤データ）を検索
+        $attendance = \App\Models\Attendance::where('user_id', $userId)
+            ->where('date', $todayStr)
+            ->first();
+
+        // 出勤していない場合は処理をスキップしてホームへ
+        if (!$attendance) {
+            return redirect()->route('attendance.index');
+        }
+
+        // 2. まだ終了時刻（break_out）が空っぽの休憩データを検索
+        $activeBreak = $attendance->breakTimes()->whereNull('break_out')->first();
+
+        if ($activeBreak) {
+            // ==========================================
+            // 🔓 【休憩戻り（終了）処理】
+            // ==========================================
+            $activeBreak->update([
+                'break_out' => $nowTimeStr,
+            ]);
+        } else {
+            // ==========================================
+            // ☕ 【休憩入り（開始）処理】
+            // ==========================================
+            $attendance->breakTimes()->create([
+                'break_in' => $nowTimeStr,
+                'break_out' => null,
+            ]);
+        }
+
+        // 打刻完了後はホーム画面へ戻り、ステータスを動的に切り替えます
+        return redirect()->route('attendance.index');
+    }
+
+
 }

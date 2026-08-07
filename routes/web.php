@@ -13,12 +13,19 @@ Route::get('/', function () {
 });
 
 // =========================================================================
-// 👤 【一般スタッフ専用ルート】 (auth および一般スタッフ判定ミドルウェア)
+// 👤 【一般スタッフ専用ルート】 (auth およびメール認証制限グループ)
 // =========================================================================
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // 【PG03】打刻用ホーム画面
+    // 【PG03】打刻用ホーム画面 (GET)
     Route::get('/attendance', [AttendanceController::class, 'index'])->name('attendance.index');
+    
+    // ✨【打刻アクション用POSTルート：重複や競合を完全に防ぐため、ここに一本化！】
+    Route::post('/attendance/clock-in', [AttendanceController::class, 'clockIn'])->name('attendance.clock_in');
+    Route::post('/attendance/clock-out', [AttendanceController::class, 'clockOut'])->name('attendance.clock_out');
+    Route::post('/attendance/break', [AttendanceController::class, 'breakToggle'])->name('attendance.break_toggle');
+    Route::post('/attendance/break-in', [AttendanceController::class, 'breakIn'])->name('attendance.break_in');
+    Route::post('/attendance/break-out', [AttendanceController::class, 'breakOut'])->name('attendance.break_out');
     
     // 【PG04】自身の月次勤怠一覧
     Route::get('/attendance/list', [AttendanceController::class, 'list'])->name('attendance.list');
@@ -43,7 +50,7 @@ Route::prefix('admin')->group(function () {
     Route::get('/login', [AdminAttendanceController::class, 'showLogin'])->name('admin.login');
     Route::post('/login', [AdminAttendanceController::class, 'login']);
 
-    // 🔒 管理者ログイン認証（管理者専用フィルター）が通っている場合のみアクセス可能
+    // 🔒 管理者専用ログイン認証ガード
     Route::middleware(['auth'])->group(function () {
         
         // 【PG08】当日の全スタッフ勤怠一覧
@@ -63,7 +70,7 @@ Route::prefix('admin')->group(function () {
         // 【PG12】全スタッフから提出された承認待ち申請の一覧
         Route::get('/stamp_correction_request/list', [AdminAttendanceController::class, 'requestList'])->name('admin.request_list');
         
-        // 【PG13】申請内容の確認 ＆ 1ボタンによる承認・本データ同期
+        // 【PG13】申請内容の確認 ＆ 承認アクション
         Route::get('/stamp_correction_request/approve/{id}', [AdminAttendanceController::class, 'approveView'])->name('admin.approve.view');
         Route::post('/stamp_correction_request/approve/{id}', [AdminAttendanceController::class, 'approveAction'])->name('admin.approve.action');
     });

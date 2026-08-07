@@ -177,8 +177,66 @@ class AttendanceController extends Controller
             }
         }
 
+            /**
+     * 【PG07】管理者専用ログイン画面の表示
+     */
+
+
         // 先ほど作成した公式見本完全一致のBladeファイルを正しく呼び出します
         return view('admin.attendance_list', compact('records', 'currentDate'));
+    }
+
+    /**
+     * 【PG07】管理者専用ログイン画面の表示
+     */
+    public function showLogin()
+    {
+        return view('auth.admin-login'); 
+
+    }
+
+    /**
+     * 【PG09】管理者用：スタッフ勤怠詳細画面の表示
+     */
+    public function detail($id)
+    {
+        $attendance = \App\Models\Attendance::with(['user', 'breakTimes'])->findOrFail($id);
+        
+        // 曜日を日本語表記にするための設定
+        \Carbon\Carbon::setLocale('ja');
+        $formattedDate = \Carbon\Carbon::parse($attendance->date)->isoFormat('YYYY年M月D日(ddd)');
+
+        return view('admin.detail', compact('attendance', 'formattedDate'));
+    }
+
+    /**
+     * 【PG09】管理者用：スタッフ勤怠データの直接修正・更新
+     */
+    public function updateDetail(Request $request, $id)
+    {
+        $attendance = \App\Models\Attendance::findOrFail($id);
+        
+        // 出退勤時間の更新
+        $attendance->update([
+            'clock_in' => $request->input('clock_in'),
+            'clock_out' => $request->input('clock_out'),
+        ]);
+
+        // 休憩時間の更新（複数ある場合に対応）
+        if ($request->has('breaks')) {
+            foreach ($request->input('breaks') as $breakId => $breakData) {
+                $break = \App\Models\BreakTime::find($breakId);
+                if ($break) {
+                    $break->update([
+                        'break_in' => $breakData['break_in'],
+                        'break_out' => $breakData['break_out'],
+                    ]);
+                }
+            }
+        }
+
+        // 更新後は日次一覧画面へリダイレクト
+        return redirect()->route('admin.attendance.list', ['date' => $attendance->date]);
     }
 
 
