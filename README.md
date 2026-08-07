@@ -9,7 +9,7 @@
 ### Dockerビルド＆起動
 1. リポジトリのクローン
    ```bash
-   git clone <https://github.com/misudakei-collab/test-3.git>
+   git clone <[https://github.com/misudakei-collab/test-3.git](https://github.com/misudakei-collab/test-3.git)>
    ```
 2. 開発環境（Laravel Sail）のコンテナ起動
    ```bash
