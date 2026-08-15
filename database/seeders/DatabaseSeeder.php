@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // -------------------------------------------------------------
-        // 👤 5つのアカウント作成 (すべてメール認証済み状態)
+        // 👤 【要件】6つのアカウント作成 (すべてメール認証済み状態)
         // -------------------------------------------------------------
         $user1 = User::create([
             'name' => 'ユーザー1(一般)',
@@ -55,41 +55,32 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => Carbon::now(),
         ]);
 
-        // -------------------------------------------------------------
-        // 📊 【指定要件①】ユーザー2 & ユーザー3 (08/07 〜 08/12)
-        // 労働 07:00 - 15:00 / 休憩 12:00 - 12:00
-        // -------------------------------------------------------------
-        $targetUsersA = [$user2->id, $user3->id];
-        for ($day = 7; $day <= 12; $day++) {
-            $dateStr = sprintf('2026-08-%02d', $day);
-            foreach ($targetUsersA as $uId) {
-                $att = Attendance::create([
-                    'user_id' => $uId,
-                    'date' => $dateStr,
-                    'clock_in' => '07:00:00',
-                    'clock_out' => '15:00:00',
-                ]);
-                $att->breakTimes()->create([
-                    'break_in' => '12:00:00',
-                    'break_out' => '12:00:00',
-                ]);
-            }
-        }
+        $user6 = User::create([
+            'name' => 'ユーザー6(一般)',
+            'email' => 'user6@example.com',
+            'password' => Hash::make('password'),
+            'is_admin' => false,
+            'email_verified_at' => Carbon::now(),
+        ]);
 
         // -------------------------------------------------------------
-        // 📊 【指定要件②】ユーザー4 & ユーザー5 (08/09 〜 08/16)
-        // 労働 07:00 - 15:00 / 休憩 12:00 - 12:00
+        // 📊 【テスト確認用】ユーザー2 〜 ユーザー6 の5名に対して、
+        // 1週間分（8月7日 〜 8月13日）の「7:00〜15:00労働、12:00〜12:00休憩」を完全注入！
         // -------------------------------------------------------------
-        $targetUsersB = [$user4->id, $user5->id];
-        for ($day = 9; $day <= 16; $day++) {
+        $targetUsers = [$user2->id, $user3->id, $user4->id, $user5->id, $user6->id];
+        
+        for ($day = 7; $day <= 13; $day++) {
             $dateStr = sprintf('2026-08-%02d', $day);
-            foreach ($targetUsersB as $uId) {
+            foreach ($targetUsers as $uId) {
+                // 1日分の出退勤データ作成
                 $att = Attendance::create([
                     'user_id' => $uId,
                     'date' => $dateStr,
                     'clock_in' => '07:00:00',
                     'clock_out' => '15:00:00',
                 ]);
+                
+                // 12:00〜12:00（0分休憩）データを作成
                 $att->breakTimes()->create([
                     'break_in' => '12:00:00',
                     'break_out' => '12:00:00',
