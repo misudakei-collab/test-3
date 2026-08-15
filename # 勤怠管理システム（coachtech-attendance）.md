@@ -9,7 +9,7 @@
 ### Dockerビルド＆起動
 1. リポジトリのクローン
    ```bash
-   git clone <リポジトリのURL>
+   git clone https://github.com/misudakei-collab/test-3.git
    ```
 2. 開発環境（Laravel Sail）のコンテナ起動
    ```bash
@@ -66,20 +66,6 @@
 
 ---
 
-## ✨ 指定通り（仕様書準拠）に実装・修正した重要ポイント
-
-### 1. フロントエンド（UI/UX）の公式見本完全再現
-- **一体型日付コントロールバー**: 日次・月次一覧における「前月/前日・年月/年月日・翌月/翌日」を、バラバラのボタンではなく、角丸・シャドウ付きの**「1本の美しいホワイトカード型」**に完全一致させました。
-- **管理者画面のモノトーン統一**: ヘッダーから各種テーブルにいたるまで、清潔感のある白と淡いグレーを基調とし、フォントの太さ・余白（高さ）までドット単位で調整しました。
-- **動的なステータス切り替え**: 一般打刻画面における「勤務外（出勤ボタン）」「出勤中（退勤/休憩入ボタン）」「休憩中（休憩戻ボタン）」「退勤済（お疲れ様でした。メッセージ）」へのスムーズなUI切り替えを実装。
-- **承認待ち状態のロックロジック**: スタッフ用の勤怠詳細画面において、申請が「承認待ち」のときは入力ボックスを完全に非表示にし、**「*承認待ちのため修正はできません。」という赤文字警告に動的に切り替わる仕様**を実装。
-
-### 2. バックエンド ＆ 外部公開用API（US017）
-- **ケバブケースURLの採用**: 指示通り `/api/attendance-records` のURLスキームでJSONデータを正確に返却。
-- **特殊エラーハンドリング**: 存在しない勤怠レコードID（例: `99999`）が要求された際、通常の404エラーではなく、**仕様指定の「424 Failed Dependency」ステータスコードとJSONメッセージを確実に返すロジック**を実装完備。
-- **CSV出力の文字化け防止**: 管理者用の月次ダウンロード機能において、Excelで開いた際の文字化けを200%防ぐ「BOM（Byte Order Mark）付きUTF-8」での出力を実装。
-
----
 
 ## 💻 使用技術
 
@@ -168,3 +154,33 @@ git add README.md && git commit -m "docs: READMEのER図をMermaid形式の高�
 | `app/Actions/Fortify/CreateNewUser.php` | 会員登録画面（一般ユーザー） | ・`name`: 必須 / 文字列 / 最大255文字<br>・`email`: 必須 / 文字列 / メールアドレス形式 / 最大255文字 / `users`テーブルで重複不可<br>・`password`: 必須 / 文字列 / 最低8文字 / 確認用パスワードと一致 |
 | `app/Http/Requests/LoginRequest.php`<br>※Fortify内部仕様を含む | ログイン画面（一般ユーザー・管理者共通） | ・`email`: 必須 / 文字列 / メールアドレス形式<br>・`password`: 必須 / 文字列 |
 | `app/Http/Requests/AttendanceCorrectionRequest.php`| 勤怠詳細画面（一般・管理者共通の修正時） | ・`clock_in`: 必須 / 時間形式（`HH:MM`）<br>・`clock_out`: 必須 / 時間形式（`HH:MM`）/ `clock_in`より後の時刻であること<br>・`breaks.*.break_in`: 任意 / 時間形式（`HH:MM`）<br>・`breaks.*.break_out`: 任意 / 時間形式（`HH:MM`）/ 紐づく`break_in`より後の時刻であること<br>・`remarks`: 必須（一般スタッフのみ）/ 文字列 / 最大255文字 |
+
+---
+
+## 🌐 動作確認・検証用 URL 一覧
+
+ローカル開発環境（Docker起動中）で各画面やAPI、テストツールにアクセスするためのURL一覧です。
+
+### 👤 一般スタッフ用 画面URL
+- **トップページ（ログインへ自動転送）**: http://localhost/
+- **会員登録画面（一般）**: http://localhost/register
+- **ログイン画面（一般）**: http://localhost/login
+- **出勤打刻ホーム画面（一般）**: http://localhost/attendance
+- **勤怠一覧画面（一般）**: http://localhost/attendance/list
+- **マイ勤怠レポート画面（一般）**: http://localhost/attendance/report
+- **自身が提出した申請一覧画面（一般）**: http://localhost/stamp_correction_request/list
+
+### 👑 管理者用 画面URL
+- **管理者専用ログイン画面**: http://localhost/admin/login
+- **当日の全スタッフ勤怠日次一覧画面**: http://localhost/admin/attendance/list
+- **全スタッフの承認待ち申請一覧画面**: http://localhost/admin/stamp_correction_request/list
+- **登録されている全一般スタッフのリスト画面**: http://localhost/admin/staff/list
+
+### 📨 メール認証テストツール（Mailhog / Mailpit）
+- **メール受信箱管理画面**: http://localhost:8025/
+*(※一般登録時の「認証はこちらから」ボタンを押下すると、自動的にこの受信箱が別タブで開きます)*
+
+### 🚀 公開API v1（指示書要件）
+- **勤怠情報一覧取得API (GET)**: http://localhost/api/v1/attendance-records
+- **勤怠情報詳細取得API (GET・実データID例: 76)**: http://localhost/api/v1/attendance-records/76
+- **存在しないIDによるエラー検証API (GET・404エラー対象)**: http://localhost/api/v1/attendance-records/99999
