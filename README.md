@@ -49,10 +49,10 @@ Linux環境（WSL2内のUbuntu等）またはMacのターミナルを立ち上�
 
 ```bash
 # 適切な作業ディレクトリ（例: ~/src や ~/projects）へ移動
-cd coachtech-attendance
+cd ~
 
 # 1. リポジトリのクローン
-git clone https://github.com/misudakei-collab/test-3.git
+git clone https://github.com
 
 # 2. クローンしたプロジェクトフォルダへ移動
 cd test-3
