@@ -155,7 +155,7 @@ Tailwind CSSなどのデザイン設定を最適化し、実際のWebブラウ�
 仕様書の要件、および実運用に耐えうるデータ整合性を担保するため、以下のリレーションシップと制約（ユニーク制約・外部キー制約）を厳格に実装しています。GitHub上では以下のMermaidコードが美しいグラフィカルなER図として動的に自動描画されます。
 
 ```mermaid
-erdiagram
+erDiagram
     users ||--o{ attendances : "1 : 多"
     users ||--o{ attendance_requests : "1 : 多"
     attendances ||--o{ break_times : "1 : 多"
