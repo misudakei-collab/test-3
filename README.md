@@ -29,9 +29,7 @@
 ---
 
 
-## 🛠️ ゼロからのローカル環境構築手順（完全網羅版）
-
-PCに何も入っていないまっさらな状態から、本システムをローカルサーバー上で完全起動させるまでの全ステップです。
+## 🛠️ 環境構築手順
 
 ### 1. 【前提条件】必要なソフトウェアの準備
 開発環境を動かすために、お使いのOSに合わせて以下の基本ツールを事前にインストールしてください。
@@ -51,10 +49,10 @@ Linux環境（WSL2内のUbuntu等）またはMacのターミナルを立ち上�
 
 ```bash
 # 適切な作業ディレクトリ（例: ~/src や ~/projects）へ移動
-cd ~
+cd coachtech-attendance
 
 # 1. リポジトリのクローン
-git clone https://github.com
+git clone https://github.com/misudakei-collab/test-3.git
 
 # 2. クローンしたプロジェクトフォルダへ移動
 cd test-3
