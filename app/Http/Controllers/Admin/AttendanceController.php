@@ -47,12 +47,15 @@ class AttendanceController extends Controller
         ]);
     }
 
+    /**
+     * 【PG11】管理者用：選択したスタッフの月次一覧閲覧画面（時間動的リアル計算版）
+     */
     public function staffAttendance(Request $request, $id)
     {
         $user = User::findOrFail($id);
-        $currentMonth = $request->input('month', Carbon::now()->format('Y-m'));
-        $startOfMonth = Carbon::parse($currentMonth)->startOfMonth();
-        $endOfMonth = Carbon::parse($currentMonth)->endOfMonth();
+        $currentMonth = $request->input('month', \Carbon\Carbon::now()->format('Y-m'));
+        $startOfMonth = \Carbon\Carbon::parse($currentMonth)->startOfMonth();
+        $endOfMonth = \Carbon\Carbon::parse($currentMonth)->endOfMonth();
 
         $attendances = Attendance::with('breakTimes')
             ->where('user_id', $id)
@@ -63,23 +66,54 @@ class AttendanceController extends Controller
         $monthlyRecords = [];
         $daysInMonth = $startOfMonth->daysInMonth;
 
-        // ★【最重要】Carbonに日本語の曜日を使うように強制設定します
+        // ★Carbonに日本語の曜日を使うように設定
         \Carbon\Carbon::setLocale('ja');
 
         for ($day = 1; $day <= $daysInMonth; $day++) {
             $dateStr = $startOfMonth->copy()->day($day)->format('Y-m-d');
             $attendance = $attendances->get($dateStr);
 
-            // ★【見本完全一致】MM/DDではなく、正しい曜日付きフォーマットに修正しました
-             $formattedDate = Carbon::parse($dateStr)->isoFormat('MM/DD(ddd)');
+            // ★正しい日本語の曜日付きフォーマット（例: 06/01(木)）に変換
+            $formattedDate = \Carbon\Carbon::parse($dateStr)->isoFormat('MM/DD(ddd)');
 
             if ($attendance) {
+                $breakTimeStr = '0:00';
+                $workTimeStr = '-';
+
+                // 出勤と退勤が両方揃っている場合のみ、タイムゾーンの影響を受けないstrtotimeで秒数計算を行います
+                if ($attendance->clock_in && $attendance->clock_out) {
+                    
+                    // ① 休憩時間の合計を計算
+                    $totalBreakSeconds = 0;
+                    foreach ($attendance->breakTimes as $break) {
+                        if ($break->break_in && $break->break_out) {
+                            $totalBreakSeconds += (strtotime($break->break_out) - strtotime($break->break_in));
+                        }
+                    }
+                    $bH = floor($totalBreakSeconds / 3600);
+                    $bM = floor(($totalBreakSeconds % 3600) / 60);
+                    $breakTimeStr = sprintf('%d:%02d', $bH, $bM);
+
+                    // ② 労働時間の合計を計算（総拘束時間 - 休憩時間、上限カットなし）
+                    $timeIn = strtotime($attendance->clock_in);
+                    $timeOut = strtotime($attendance->clock_out);
+                    
+                    $staySeconds = $timeOut - $timeIn;
+                    $workSeconds = $staySeconds - $totalBreakSeconds;
+                    if ($workSeconds < 0) $workSeconds = 0;
+
+                    $wH = floor($workSeconds / 3600);
+                    $wM = floor(($workSeconds % 3600) / 60);
+                    $workTimeStr = sprintf('%d:%02d', $wH, $wM);
+                }
+
                 $monthlyRecords[] = [
                     'id' => $attendance->id,
                     'date' => $formattedDate,
-                    'clock_in' => Carbon::parse($attendance->clock_in)->format('H:i'),
-                    'clock_out' => $attendance->clock_out ? Carbon::parse($attendance->clock_out)->format('H:i') : '-',
-                    'break_count' => $attendance->breakTimes->count(),
+                    'clock_in' => $attendance->clock_in ? \Carbon\Carbon::parse($attendance->clock_in)->format('H:i') : '',
+                    'clock_out' => $attendance->clock_out ? \Carbon\Carbon::parse($attendance->clock_out)->format('H:i') : '-',
+                    'break_time' => $breakTimeStr, // ★動的に連動！
+                    'work_time' => $workTimeStr,   // ★動的に連動！
                 ];
             } else {
                 $monthlyRecords[] = [
@@ -87,14 +121,16 @@ class AttendanceController extends Controller
                     'date' => $formattedDate,
                     'clock_in' => '',
                     'clock_out' => '',
-                    'break_count' => 0,
+                    'break_time' => '-',
+                    'work_time' => '-',
                 ];
             }
         }
 
-        // ※ループの後にビューへデータを渡して返却する記述（残りの行）はそのままで大丈夫です
-        return view('admin.staff_attendance', compact('user', 'monthlyRecords', 'currentMonth'));
+
+        return view('admin.staff_attendance', compact('monthlyRecords', 'currentMonth', 'user'));
     }
+
 
 
     /**
@@ -243,20 +279,21 @@ class AttendanceController extends Controller
 
 
     /**
-     * ★【FN045】スタッフ別月次勤怠情報の ★CSV出力機能（休憩時間・労働時間対応版）
+     * ★【FN045】スタッフ別月次勤怠情報の ★CSV出力機能（時刻型引き算完全対応版）
      */
     public function exportCsv(Request $request, $id)
     {
         $user = User::findOrFail($id);
         $month = $request->input('month', Carbon::now()->format('Y-m'));
 
+        // 日付型カラムでも100%確実にヒットするようlike検索で該当月の勤怠データを一括取得します
         $attendances = Attendance::with('breakTimes')
             ->where('user_id', $id)
             ->where('date', 'like', "${month}%")
             ->orderBy('date', 'asc')
             ->get();
 
-        $response = new StreamedResponse(function () use ($attendances, $user) {
+        $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($attendances, $user) {
             $stream = fopen('php://output', 'w');
             
             // ★Excelの文字化けを100%防ぐBOM（Byte Order Mark）を確実に先頭へ注入
@@ -272,24 +309,31 @@ class AttendanceController extends Controller
                 // 日付を「06/01(木)」のような美しい日本語曜日付き形式に変換
                 $formattedDate = Carbon::parse($attendance->date)->isoFormat('MM/DD(ddd)');
                 
-                $clockIn = Carbon::parse($attendance->clock_in);
-                $clockOut = $attendance->clock_out ? Carbon::parse($attendance->clock_out) : null;
+                $clockInStr = $attendance->clock_in ? date('H:i', strtotime($attendance->clock_in)) : '-';
+                $clockOutStr = $attendance->clock_out ? date('H:i', strtotime($attendance->clock_out)) : '-';
 
-                // ① 休憩時間の合計を計算（秒単位から H:i 形式へ変換）
-                $totalBreakSeconds = 0;
-                foreach ($attendance->breakTimes as $break) {
-                    if ($break->break_in && $break->break_out) {
-                        $totalBreakSeconds += Carbon::parse($break->break_out)->diffInSeconds(Carbon::parse($break->break_in));
-                    }
-                }
-                $breakHours = floor($totalBreakSeconds / 3600);
-                $breakMinutes = floor(($totalBreakSeconds % 3600) / 60);
-                $breakTimeStr = sprintf('%02d:%02d', $breakHours, $breakMinutes);
-
-                // ② 労働時間の合計を計算（退勤していれば、総拘束時間 - 休憩時間）
+                $breakTimeStr = '00:00';
                 $workTimeStr = '-';
-                if ($clockOut) {
-                    $totalStaySeconds = $clockOut->diffInSeconds($clockIn);
+
+                // 出勤と退勤が両方揃っている場合のみ、タイムゾーンの影響を受けないstrtotimeで秒数計算を行います
+                if ($attendance->clock_in && $attendance->clock_out) {
+                    
+                    // ① 休憩時間の合計を計算（純粋な時刻文字列から引き算）
+                    $totalBreakSeconds = 0;
+                    foreach ($attendance->breakTimes as $break) {
+                        if ($break->break_in && $break->break_out) {
+                            $totalBreakSeconds += (strtotime($break->break_out) - strtotime($break->break_in));
+                        }
+                    }
+                    $breakHours = floor($totalBreakSeconds / 3600);
+                    $breakMinutes = floor(($totalBreakSeconds % 3600) / 60);
+                    $breakTimeStr = sprintf('%02d:%02d', $breakHours, $breakMinutes);
+
+                    // ② 労働時間の合計を計算（総拘束時間 - 休憩時間）
+                    $timeIn = strtotime($attendance->clock_in);
+                    $timeOut = strtotime($attendance->clock_out);
+                    
+                    $totalStaySeconds = $timeOut - $timeIn;
                     $totalWorkSeconds = $totalStaySeconds - $totalBreakSeconds;
                     
                     if ($totalWorkSeconds < 0) {
@@ -304,8 +348,8 @@ class AttendanceController extends Controller
                 fputcsv($stream, [
                     $user->name,
                     $formattedDate,
-                    $clockIn->format('H:i'),
-                    $clockOut ? $clockOut->format('H:i') : '-',
+                    $clockInStr,
+                    $clockOutStr,
                     $breakTimeStr,
                     $workTimeStr,
                 ]);
@@ -318,6 +362,7 @@ class AttendanceController extends Controller
 
         return $response;
     }
+
 
     /**
      * 【PG12】申請一覧画面（管理者用）

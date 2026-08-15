@@ -61,19 +61,19 @@
                         </td>
                         <!-- 出勤 -->
                         <td style="padding: 0 24px !important; font-size: 14px !important;">
-                            {{ $rec['clock_in'] ?: '09:00' }}
+                            {{ $rec['clock_in']  }}
                         </td>
                         <!-- 退勤 -->
                         <td style="padding: 0 24px !important; font-size: 14px !important;">
-                            {{ $rec['clock_out'] ?: '18:00' }}
+                            {{ $rec['clock_out'] }}
                         </td>
                         <!-- 休憩 -->
                         <td style="padding: 0 24px !important; font-size: 14px !important;">
-                            {{ $rec['break_time'] ?: '1:00' }}
+                            {{ $rec['break_time'] }}
                         </td>
                         <!-- 合計（実労働時間：定時の8時間など） -->
                         <td style="padding: 0 24px !important; font-size: 14px !important; font-weight: 600 !important;">
-                            {{ $rec['work_time'] ?? '8:00' }}
+                            {{ $rec['work_time'] }}
                         </td>
                         <!-- 詳細リンク -->
                         <td style="padding: 0 24px !important; text-align: center !important;">
