@@ -106,7 +106,7 @@ class AdminAttendanceController extends Controller
     }
 
     /**
-     * 【PG11】選択したスタッフの月次一覧閲覧画面（時間動的リアル計算版）
+     * 管理者用：選択したスタッフの月次一覧閲覧画面を表示します。
      */
     public function staffAttendance(Request $request, $id)
     {
@@ -131,27 +131,16 @@ class AdminAttendanceController extends Controller
             $formattedDate = Carbon::parse($dateStr)->isoFormat('MM/DD(ddd)');
 
             if ($attendance) {
-                $breakTimeStr = '0:00'; $workTimeStr = '-';
-                if ($attendance->clock_in && $attendance->clock_out) {
-                    $totalBreakSeconds = 0;
-                    foreach ($attendance->breakTimes as $break) {
-                        if ($break->break_in && $break->break_out) {
-                            $totalBreakSeconds += (strtotime($break->break_out) - strtotime($break->break_in));
-                        }
-                    }
-                    $breakTimeStr = sprintf('%d:%02d', floor($totalBreakSeconds / 3600), floor(($totalBreakSeconds % 3600) / 60));
-
-                    $staySeconds = strtotime($attendance->clock_out) - strtotime($attendance->clock_in);
-                    $workSeconds = $staySeconds - $totalBreakSeconds;
-                    if ($workSeconds < 0) $workSeconds = 0;
-                    $workTimeStr = sprintf('%d:%02d', floor($workSeconds / 3600), floor(($workSeconds % 3600) / 60));
-                }
+                // 一般スタッフ側と全く同じ共通計算サービスを利用してロジックを一元管理します
+                $calculated = \App\Services\AttendanceCalculator::calculateTimes($attendance);
 
                 $monthlyRecords[] = [
-                    'id' => $attendance->id, 'date' => $formattedDate,
+                    'id' => $attendance->id,
+                    'date' => $formattedDate,
                     'clock_in' => $attendance->clock_in ? Carbon::parse($attendance->clock_in)->format('H:i') : '',
                     'clock_out' => $attendance->clock_out ? Carbon::parse($attendance->clock_out)->format('H:i') : '-',
-                    'break_time' => $breakTimeStr, 'work_time' => $workTimeStr,
+                    'break_time' => $calculated['break_time'],
+                    'work_time' => $calculated['work_time'],
                 ];
             } else {
                 $monthlyRecords[] = [
@@ -161,4 +150,5 @@ class AdminAttendanceController extends Controller
         }
         return view('admin.staff_attendance', compact('monthlyRecords', 'currentMonth', 'user'));
     }
+
 }

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class AdminAuthController extends Controller
 {
     /**
-     * 【PG07】管理者専用ログイン画面の表示
+     * 管理者専用ログイン画面の表示
      */
     public function showLogin()
     {
@@ -17,7 +17,7 @@ class AdminAuthController extends Controller
     }
 
     /**
-     * 【PG07】管理者ログイン認証処理
+     * 管理者ログイン認証処理
      */
     public function login(Request $request)
     {
