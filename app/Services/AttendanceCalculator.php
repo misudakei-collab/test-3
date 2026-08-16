@@ -8,7 +8,7 @@ class AttendanceCalculator
 {
     /**
      * 勤怠レコードから「休憩時間」と「実労働時間」を秒単位で計算し、文字列（H:i）形式の配列で返却します。
-     * コメント履歴や指示書記号を排除し、処理の意図のみに限定したクリーンな設計です。
+     * 略称を完全に排除し、可読性と保守性を最大化したクリーンコード仕様です。
      */
     public static function calculateTimes(Attendance $attendance): array
     {
@@ -23,9 +23,10 @@ class AttendanceCalculator
                 }
             }
             
-            $bH = floor($totalBreakSeconds / 3600);
-            $bM = floor(($totalBreakSeconds % 3600) / 60);
-            $breakTimeStr = sprintf('%d:%02d', $bH, $bM);
+            // 💡【重要修正】略称（$bH, $bM）をフルスペルに変更して意味を分かりやすくします
+            $breakHours = floor($totalBreakSeconds / 3600);
+            $breakMinutes = floor(($totalBreakSeconds % 3600) / 60);
+            $breakTimeStr = sprintf('%d:%02d', $breakHours, $breakMinutes);
 
             $timeIn = strtotime($attendance->clock_in);
             $timeOut = strtotime($attendance->clock_out);
@@ -35,9 +36,10 @@ class AttendanceCalculator
                 $workSeconds = 0;
             }
 
-            $wH = floor($workSeconds / 3600);
-            $wM = floor(($workSeconds % 3600) / 60);
-            $workTimeStr = sprintf('%d:%02d', $wH, $wM);
+            // 💡【重要修正】略称（$wH, $wM）をフルスペルに変更して意味を分かりやすくします
+            $workHours = floor($workSeconds / 3600);
+            $workMinutes = floor(($workSeconds % 3600) / 60);
+            $workTimeStr = sprintf('%d:%02d', $workHours, $workMinutes);
         }
 
         return [
