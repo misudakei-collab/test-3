@@ -43,11 +43,12 @@ class AdminAttendanceController extends Controller
                     $workSeconds = $staySeconds - $totalBreakSeconds;
                     if ($workSeconds < 0) $workSeconds = 0;
                     
-                    // 💡 可読性を高めるため、ここも分かりやすいフルスペル名称に揃えておきます
+                    // 💡【重要修正：指摘189への完全対応】略称（$wH, $wM）をフルスペル名称へ変更
                     $workHours = floor($workSeconds / 3600);
                     $workMinutes = floor(($workSeconds % 3600) / 60);
                     $workTimeStr = sprintf('%d:%02d', $workHours, $workMinutes);
                 }
+
 
 
                 $records[] = [
