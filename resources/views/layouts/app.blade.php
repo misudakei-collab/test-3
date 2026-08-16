@@ -9,8 +9,8 @@
 <body class="m-0 p-0 bg-white text-gray-900 font-sans min-h-screen flex flex-col">
 
     <!-- 共通ヘッダー -->
-    <header class="order-first bg-black text-white w-full h-16 flex items-center justify-center box-border">
-        <div class="w-full max-w-[1200px] px-10 flex items-center justify-between box-border">
+    <header class="bg-black text-white w-full h-16 flex items-center justify-center">
+        <div class="w-full max-w-[1200px] px-10 flex items-center justify-between">
             
             <!-- ロゴ -->
             <div class="text-2xl font-black tracking-wider select-none">
@@ -21,20 +21,20 @@
             @auth
             <nav class="flex items-center gap-8 text-sm font-bold">
                 @if(auth()->user()->is_admin)
-                    <a href="{{ route('admin.attendance.list') }}" class="text-white no-underline">勤怠一覧</a>
-                    <a href="{{ route('admin.staff.list') }}" class="text-white no-underline">スタッフ一覧</a>
-                    <a href="{{ route('admin.request_list') }}" class="text-white no-underline">申請一覧</a>
+                    <a href="{{ route('admin.attendance.list') }}" class="text-white no-underline hover:opacity-80 transition">勤怠一覧</a>
+                    <a href="{{ route('admin.staff.list') }}" class="text-white no-underline hover:opacity-80 transition">スタッフ一覧</a>
+                    <a href="{{ route('admin.request_list') }}" class="text-white no-underline hover:opacity-80 transition">申請一覧</a>
                 @else
-                    <a href="{{ route('attendance.index') }}" class="text-white no-underline">勤怠</a>
-                    <a href="{{ route('attendance.list') }}" class="text-white no-underline">勤怠一覧</a>
-                    <a href="{{ route('attendance.request_list') }}" class="text-white no-underline">申請一覧</a>
-                    <a href="{{ route('attendance.report') }}" class="text-white no-underline">レポート</a>
+                    <a href="{{ route('attendance.index') }}" class="text-white no-underline hover:opacity-80 transition">勤怠</a>
+                    <a href="{{ route('attendance.list') }}" class="text-white no-underline hover:opacity-80 transition">勤怠一覧</a>
+                    <a href="{{ route('attendance.request_list') }}" class="text-white no-underline hover:opacity-80 transition">申請一覧</a>
+                    <a href="{{ route('attendance.report') }}" class="text-white no-underline hover:opacity-80 transition">レポート</a>
                 @endif
                 
-                <!-- ログアウト -->
-                <form method="POST" action="/logout" class="inline m-0">
+                <!-- ログアウトボタン -->
+                <form method="POST" action="/logout" class="inline m-0 p-0 flex items-center">
                     @csrf
-                    <button type="submit" class="bg-transparent border-none text-white text-sm font-bold cursor-pointer p-0">
+                    <button type="submit" class="bg-transparent border-none text-white text-sm font-bold cursor-pointer p-0 hover:opacity-80 transition font-sans">
                         ログアウト
                     </button>
                 </form>

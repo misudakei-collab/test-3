@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\Attendance;
 use Carbon\Carbon;
 
 class AttendanceReportController extends Controller
 {
     /**
-     * 【PG14】マイ勤怠レポート画面（予測値100%完全一致・最終決定版）
+     * Display the attendance report.
      */
     public function index()
     {
@@ -18,20 +19,18 @@ class AttendanceReportController extends Controller
             return redirect('/login');
         }
 
-        // 2月〜7月の過去6ヶ月の固定推移を生成
         $baseDate = Carbon::now()->subMonth(); 
         $months = [];
         for ($i = 5; $i >= 0; $i--) {
             $months[] = $baseDate->copy()->subMonths($i)->format('Y-m');
         }
-        $currentMonthStr = end($months); // 2026-07
+        $currentMonthStr = end($months);
 
         $monthly_trends = [];
         $totalWorkSecondsAll = 0;
         $totalOvertimeSecondsAll = 0;
         $totalDaysAll = 0;
 
-        // 異常検知用カウンター
         $lateCount = 0;
         $earlyCount = 0;
         $longWorkCount = 0;
@@ -58,7 +57,6 @@ class AttendanceReportController extends Controller
                 $timeIn = strtotime($attendance->clock_in);
                 $timeOut = strtotime($attendance->clock_out);
 
-                // 休憩秒数の計算
                 $breakSeconds = 0;
                 foreach ($attendance->breakTimes as $break) {
                     if ($break->break_in && $break->break_out) {
@@ -66,19 +64,16 @@ class AttendanceReportController extends Controller
                     }
                 }
 
-                // 実労働時間
                 $staySeconds = $timeOut - $timeIn;
                 $workSeconds = $staySeconds - $breakSeconds;
                 if ($workSeconds < 0) $workSeconds = 0;
 
                 $monthWorkSeconds += $workSeconds;
 
-                // 1日8時間を超えた分を純粋に残業時間として集計
                 if ($workSeconds > 28800) {
                     $monthOvertimeSeconds += ($workSeconds - 28800);
                 }
 
-                // 当月（7月）のみ異常検知をカウント
                 if ($month === $currentMonthStr) {
                     if (date('H:i', $timeIn) > '09:00') {
                         $lateCount++;
@@ -86,7 +81,7 @@ class AttendanceReportController extends Controller
                     if (date('H:i', $timeOut) < '18:00') {
                         $earlyCount++;
                     }
-                    if ($workSeconds > 36000) { // 10時間超過（長時間労働）
+                    if ($workSeconds > 36000) {
                         $longWorkCount++;
                     }
                 }
@@ -108,33 +103,23 @@ class AttendanceReportController extends Controller
             ];
         }
 
-        // 基本サマリーの総集計
         $totalWorkHours = floor($totalWorkSecondsAll / 3600);
         $totalWorkMinutes = floor(($totalWorkSecondsAll % 3600) / 60);
         
         $totalOvertimeHours = floor($totalOvertimeSecondsAll / 3600);
         $totalOvertimeMinutes = floor(($totalOvertimeSecondsAll % 3600) / 60);
-        }
 
-        // サマリー用の最終総合変換
-        $totalH = floor($totalWorkSecondsAll / 3600);
-        $totalM = floor(($totalWorkSecondsAll % 3600) / 60);
-        
-        $totalOverH = floor($totalOvertimeSecondsAll / 3600);
-        $totalOverM = floor(($totalOvertimeSecondsAll % 3600) / 60);
-
-        // 平均労働時間の算出（744時間 ÷ 92日間 ＝ 8.0869h ＝ 8時間5.2分 → 8h 5mへ完全一致）
         $avgWorkStr = "0h 0m";
         if ($totalDaysAll > 0) {
             $avgSeconds = floor($totalWorkSecondsAll / $totalDaysAll);
-            $avgH = floor($avgSeconds / 3600);
-            $avgM = floor(($avgSeconds % 3600) / 60);
-            $avgWorkStr = "${avgH}h ${avgM}m";
+            $avgHours = floor($avgSeconds / 3600);
+            $avgMinutes = floor(($avgSeconds % 3600) / 60);
+            $avgWorkStr = "${avgHours}h ${avgMinutes}m";
         }
 
         $summary = [
-            'total_work' => "${totalH}h ${totalM}m",
-            'total_overtime' => "${totalOverH}h ${totalOverM}m",
+            'total_work' => "${totalWorkHours}h ${totalWorkMinutes}m",
+            'total_overtime' => "${totalOvertimeHours}h ${totalOvertimeMinutes}m",
             'average_work' => $avgWorkStr,
         ];
 

@@ -80,10 +80,10 @@
 
                     
                     @php $breakTimes = $attendance->breakTimes; @endphp
+                    <!-- 休憩 -->
                     <tr style="height: 72px !important;">
                         <td style="padding-left: 40px !important; font-weight: bold !important; color: #4b5563 !important; background-color: #fafafa !important;">休憩</td>
                         <td style="padding-left: 100px !important;">
-                            
                             @if($isPending)
                                 @php $breaks = json_decode($attendanceRequest->break_times, true) ?: []; @endphp
                                 <div class="flex items-center" style="gap: 32px !important; font-size: 15px !important; font-weight: bold !important; color: #111827 !important;">
@@ -92,7 +92,6 @@
                                     <span>{{ count($breaks) > 0 ? substr($breaks[0]['break_out'], 0, 5) : '13:00' }}</span>
                                 </div>
                             @else
-                                
                                 <div class="flex items-center text-gray-400 font-bold" style="gap: 24px !important;">
                                     <input type="text" name="breaks[0][break_in]" value="{{ isset($breakTimes[0]) ? substr($breakTimes[0]->break_in, 0, 5) : '12:00' }}" 
                                         class="h-10 px-3 border border-gray-300 text-center font-medium text-gray-900 focus:outline-none" style="width: 110px !important; font-size: 15px !important; border-radius: 4px !important; box-sizing: border-box !important;">
@@ -104,21 +103,20 @@
                         </td>
                     </tr>
 
-                    
-                    
+                    <!-- 休憩2 -->
                     @if(!$isPending)
                     <tr style="height: 72px !important;">
                         <td style="padding-left: 40px !important; font-weight: bold !important; color: #4b5563 !important; background-color: #fafafa !important;">休憩2</td>
                         <td style="padding-left: 100px !important;">
-                            
                             <div class="flex items-center text-gray-400 font-bold" style="gap: 24px !important;">
-                                <input type="text" name="breaks[1][break_in]" class="h-10 px-3 border border-gray-300 text-center font-medium text-gray-900 focus:outline-none" style="width: 110px !important; font-size: 15px !important; border-radius: 4px !important; box-sizing: border-box !important;">
+                                <input type="text" name="breaks[1][break_in]" value="{{ isset($breakTimes[1]) ? substr($breakTimes[1]->break_in, 0, 5) : '' }}" class="h-10 px-3 border border-gray-300 text-center font-medium text-gray-900 focus:outline-none" style="width: 110px !important; font-size: 15px !important; border-radius: 4px !important; box-sizing: border-box !important;">
                                 <span style="font-size: 16px !important; font-weight: normal !important; color: #111827 !important;">～</span>
-                                <input type="text" name="breaks[1][break_out]" class="h-10 px-3 border border-gray-300 text-center font-medium text-gray-900 focus:outline-none" style="width: 110px !important; font-size: 15px !important; border-radius: 4px !important; box-sizing: border-box !important;">
+                                <input type="text" name="breaks[1][break_out]" value="{{ isset($breakTimes[1]) && $breakTimes[1]->break_out ? substr($breakTimes[1]->break_out, 0, 5) : '' }}" class="h-10 px-3 border border-gray-300 text-center font-medium text-gray-900 focus:outline-none" style="width: 110px !important; font-size: 15px !important; border-radius: 4px !important; box-sizing: border-box !important;">
                             </div>
                         </td>
                     </tr>
                     @endif
+
 
 
                     
