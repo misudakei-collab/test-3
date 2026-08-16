@@ -42,36 +42,39 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // =========================================================================
-// 👑 【管理者専用ルート】 (URLの先頭に /admin を強制固定・完全に分離)
+// 👑 【管理者専用ルート】 (URLの先頭に /admin を強制固定・責務分割リファクタリング版)
 // =========================================================================
 Route::prefix('admin')->group(function () {
     
-    // 【PG07】管理者専用ログイン画面
-    Route::get('/login', [AdminAttendanceController::class, 'showLogin'])->name('admin.login');
-    Route::post('/login', [AdminAttendanceController::class, 'login']);
+    // 🔓 【認証】管理者専用ログイン画面・処理
+    Route::get('/login', [\App\Http\Controllers\Admin\AdminAuthController::class, 'showLogin'])->name('admin.login');
+    Route::post('/login', [\App\Http\Controllers\Admin\AdminAuthController::class, 'login']);
 
     // 🔒 管理者専用ログイン認証ガード
     Route::middleware(['auth'])->group(function () {
         
-        // 【PG08】当日の全スタッフ勤怠一覧
-        Route::get('/attendance/list', [AdminAttendanceController::class, 'list'])->name('admin.attendance.list');
+        // 📊 【勤怠管理】当日の全スタッフ勤怠一覧
+        Route::get('/attendance/list', [\App\Http\Controllers\Admin\AdminAttendanceController::class, 'list'])->name('admin.attendance.list');
         
-        // 【PG09】管理者によるスタッフ勤怠データの直接修正
-        Route::get('/attendance/{id}', [AdminAttendanceController::class, 'detail'])->name('admin.detail');
-        Route::post('/attendance/{id}', [AdminAttendanceController::class, 'updateDetail']);
+        // ✏️ 【勤怠管理】管理者によるスタッフ勤怠データの直接修正
+        Route::get('/attendance/{id}', [\App\Http\Controllers\Admin\AdminAttendanceController::class, 'detail'])->name('admin.detail');
+        Route::post('/attendance/{id}', [\App\Http\Controllers\Admin\AdminAttendanceController::class, 'updateDetail']);
         
-        // 【PG10】登録されている全一般スタッフのリスト閲覧
-        Route::get('/staff/list', [AdminAttendanceController::class, 'staffList'])->name('admin.staff.list');
+        // 👥 【勤怠管理】登録されている全一般スタッフのリスト閲覧
+        Route::get('/staff/list', [\App\Http\Controllers\Admin\AdminAttendanceController::class, 'staffList'])->name('admin.staff.list');
         
-        // 【PG11】選択したスタッフの月次一覧閲覧 & CSV出力
-        Route::get('/attendance/staff/{id}', [AdminAttendanceController::class, 'staffAttendance'])->name('admin.staff.attendance');
-        Route::post('/attendance/staff/{id}/csv', [AdminAttendanceController::class, 'exportCsv'])->name('admin.staff.csv');
+        // 📅 【勤怠管理】選択したスタッフの月次一覧閲覧
+        Route::get('/attendance/staff/{id}', [\App\Http\Controllers\Admin\AdminAttendanceController::class, 'staffAttendance'])->name('admin.staff.attendance');
         
-        // 【PG12】全スタッフから提出された承認待ち申請の一覧
-        Route::get('/stamp_correction_request/list', [AdminAttendanceController::class, 'requestList'])->name('admin.request_list');
+        // 📥 【CSV出力】スタッフ別月次CSV出力専用ルート
+        Route::post('/attendance/staff/{id}/csv', [\App\Http\Controllers\Admin\AdminCsvController::class, 'exportCsv'])->name('admin.staff.csv');
         
-        // 【PG13】申請内容の確認 ＆ 承認アクション
-        Route::get('/stamp_correction_request/approve/{id}', [AdminAttendanceController::class, 'approveView'])->name('admin.approve.view');
-        Route::post('/stamp_correction_request/approve/{id}', [AdminAttendanceController::class, 'approveAction'])->name('admin.approve.action');
+        // 🚨 【申請承認】全スタッフから提出された申請の一覧表示
+        Route::get('/stamp_correction_request/list', [\App\Http\Controllers\Admin\AdminApprovalController::class, 'requestList'])->name('admin.request_list');
+        
+        // ⚖️ 【申請承認】申請内容の確認 ＆ 承認アクション
+        Route::get('/stamp_correction_request/approve/{id}', [\App\Http\Controllers\Admin\AdminApprovalController::class, 'approveView'])->name('admin.approve.view');
+        Route::post('/stamp_correction_request/approve/{id}', [\App\Http\Controllers\Admin\AdminApprovalController::class, 'approveAction'])->name('admin.approve.action');
     });
 });
+
