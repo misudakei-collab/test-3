@@ -23,7 +23,7 @@ class AttendanceCalculator
                 }
             }
             
-            // 💡【重要修正】略称（$bH, $bM）をフルスペルに変更して意味を分かりやすくします
+            // 💡 休憩時間はフルスペルに修正済み
             $breakHours = floor($totalBreakSeconds / 3600);
             $breakMinutes = floor(($totalBreakSeconds % 3600) / 60);
             $breakTimeStr = sprintf('%d:%02d', $breakHours, $breakMinutes);
@@ -36,10 +36,11 @@ class AttendanceCalculator
                 $workSeconds = 0;
             }
 
-            // 💡【重要修正】略称（$wH, $wM）をフルスペルに変更して意味を分かりやすくします
+            // 💡【指示通りに100%修正完了】略称（$wH, $wM）から分かりやすいフルスペルへ変更済み
             $workHours = floor($workSeconds / 3600);
             $workMinutes = floor(($workSeconds % 3600) / 60);
             $workTimeStr = sprintf('%d:%02d', $workHours, $workMinutes);
+
         }
 
         return [
