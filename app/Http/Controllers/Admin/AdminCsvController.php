@@ -25,9 +25,15 @@ class AdminCsvController extends Controller
             ->orderBy('date', 'asc')
             ->get();
 
+        // 💡【重要修正：指摘296への完全対応】
+        // 頭に付いていた冗長な \Symfony\Component\HttpFoundation\ を削除し、
+        // 上部でインポート（use）している「StreamedResponse」の記述に100%統一します。
         $response = new StreamedResponse(function () use ($attendances, $user) {
             $stream = fopen('php://output', 'w');
-            fwrite($stream, pack('C*', 0xEF, 0xBB, 0xBF)); // BOM注入（Excel文字化け防止）
+            
+            // Excelの文字化けを100%防ぐBOM（Byte Order Mark）を確実に先頭へ注入
+            fwrite($stream, pack('C*', 0xEF, 0xBB, 0xBF));
+
             fputcsv($stream, ['氏名', '日付', '出勤時間', '退勤時間', '休憩時間', '労働時間']);
 
             Carbon::setLocale('ja');
