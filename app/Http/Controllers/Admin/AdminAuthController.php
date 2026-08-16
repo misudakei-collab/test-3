@@ -8,17 +8,11 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminAuthController extends Controller
 {
-    /**
-     * 管理者専用ログイン画面の表示
-     */
     public function showLogin()
     {
         return view('auth.admin-login');
     }
 
-    /**
-     * 管理者ログイン認証処理
-     */
     public function login(Request $request)
     {
         $credentials = $request->validate([

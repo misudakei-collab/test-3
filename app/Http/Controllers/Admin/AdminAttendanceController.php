@@ -11,9 +11,6 @@ use Carbon\Carbon;
 
 class AdminAttendanceController extends Controller
 {
-    /**
-     * 【PG08】当日の全スタッフ勤怠一覧画面
-     */
     public function list(Request $request)
     {
         $currentDate = $request->input('date', Carbon::now()->format('Y-m-d'));
@@ -24,15 +21,12 @@ class AdminAttendanceController extends Controller
         foreach ($users as $user) {
             $attendance = $attendances->get($user->id);
             if ($attendance) {
-                // 💡 当日の全スタッフの休憩秒数を集計するループ処理部分です
                 $totalBreakSeconds = 0;
                 foreach ($attendance->breakTimes as $break) {
                     if ($break->break_in && $break->break_out) {
                         $totalBreakSeconds += (strtotime($break->break_out) - strtotime($break->break_in));
                     }
                 }
-                
-                // 💡【重要修正：指摘175への完全対応】略称（$bH, $bM）を分かりやすいフルスペルに書き換えます
                 $breakHours = floor($totalBreakSeconds / 3600);
                 $breakMinutes = floor(($totalBreakSeconds % 3600) / 60);
                 $breakTimeStr = sprintf('%d:%02d', $breakHours, $breakMinutes);
@@ -42,8 +36,6 @@ class AdminAttendanceController extends Controller
                     $staySeconds = strtotime($attendance->clock_out) - strtotime($attendance->clock_in);
                     $workSeconds = $staySeconds - $totalBreakSeconds;
                     if ($workSeconds < 0) $workSeconds = 0;
-                    
-                    // 💡【重要修正：指摘189への完全対応】略称（$wH, $wM）をフルスペル名称へ変更
                     $workHours = floor($workSeconds / 3600);
                     $workMinutes = floor(($workSeconds % 3600) / 60);
                     $workTimeStr = sprintf('%d:%02d', $workHours, $workMinutes);
@@ -69,9 +61,6 @@ class AdminAttendanceController extends Controller
         return view('admin.attendance_list', compact('records', 'currentDate'));
     }
 
-    /**
-     * 【PG09】管理者用：スタッフ勤怠詳細画面の表示
-     */
     public function detail($id)
     {
         $attendance = Attendance::with(['user', 'breakTimes'])->findOrFail($id);
@@ -80,9 +69,6 @@ class AdminAttendanceController extends Controller
         return view('admin.detail', compact('attendance', 'formattedDate'));
     }
 
-    /**
-     * 【PG09】管理者用：スタッフ勤怠データの直接修正・更新
-     */
     public function updateDetail(Request $request, $id)
     {
         $attendance = Attendance::findOrFail($id);
@@ -105,18 +91,12 @@ class AdminAttendanceController extends Controller
         return redirect()->route('admin.attendance.list', ['date' => $attendance->date]);
     }
 
-    /**
-     * 【PG10】登録されている全一般スタッフのリスト閲覧
-     */
     public function staffList()
     {
         $staffs = User::where('is_admin', false)->get();
         return view('admin.staff_list', compact('staffs'));
     }
 
-    /**
-     * 管理者用：選択したスタッフの月次一覧閲覧画面を表示します。
-     */
     public function staffAttendance(Request $request, $id)
     {
         $user = User::findOrFail($id);
@@ -140,7 +120,6 @@ class AdminAttendanceController extends Controller
             $formattedDate = Carbon::parse($dateStr)->isoFormat('MM/DD(ddd)');
 
             if ($attendance) {
-                // 一般スタッフ側と全く同じ共通計算サービスを利用してロジックを一元管理します
                 $calculated = \App\Services\AttendanceCalculator::calculateTimes($attendance);
 
                 $monthlyRecords[] = [

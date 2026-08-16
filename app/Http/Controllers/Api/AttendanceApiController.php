@@ -9,9 +9,6 @@ use Illuminate\Support\Facades\Validator;
 
 class AttendanceApiController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $paginated = Attendance::with('breakTimes')->paginate(10);
@@ -25,9 +22,6 @@ class AttendanceApiController extends Controller
         ], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $attendance = Attendance::with('breakTimes')->find($id);
@@ -39,9 +33,6 @@ class AttendanceApiController extends Controller
         return response()->json(['data' => $attendance], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -66,9 +57,6 @@ class AttendanceApiController extends Controller
         return response()->json($attendance, 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, $id)
     {
         $attendance = Attendance::find($id);
@@ -86,9 +74,6 @@ class AttendanceApiController extends Controller
         return response()->json(['message' => 'レコードが更新されました。'], 200, [], JSON_UNESCAPED_UNICODE);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy($id)
     {
         $attendance = Attendance::find($id);

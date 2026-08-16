@@ -49,9 +49,6 @@ class AttendanceController extends Controller
         return view('attendance.index', compact('status', 'currentDate', 'attendance'));
     }
 
-    /**
-     * ★【最重要】管理者専用のログイン・認証処理（バグを修正した完全版）
-     */
     public function login(Request $request)
     {
         // 1. 入力バリデーション
@@ -214,14 +211,10 @@ class AttendanceController extends Controller
         return view('attendance.detail', compact('attendance', 'attendanceRequest'));
     }
 
-    /**
-     * 修正申請の保存処理（完全一致バリデーション対応）
-     */
     public function storeRequest(Request $request, $id)
     {
         $attendance = Attendance::findOrFail($id);
 
-        // 指定された厳格なバリデーションメッセージを適用
         $request->validate([
             'clock_in' => 'required',
             'clock_out' => 'required',
@@ -233,12 +226,10 @@ class AttendanceController extends Controller
         $in = $request->clock_in;
         $out = $request->clock_out;
 
-        // 時間の不整合チェック（FN029 仕様）
         if ($in && $out && $in >= $out) {
             return redirect()->back()->withInput()->withErrors(['clock_in' => '出勤時間もしくは退勤時間が不適切な値です']);
         }
 
-        // 休憩データの整形（空の追加フィールドを除外してJSON化）
         $formattedBreaks = [];
         if ($request->has('breaks')) {
             foreach ($request->breaks as $break) {
@@ -254,7 +245,6 @@ class AttendanceController extends Controller
             }
         }
 
-        // 申請データを一時保存テーブルへレコード作成（または更新）
         AttendanceRequest::updateOrCreate(
             ['attendance_id' => $id, 'user_id' => Auth::id()],
             [
@@ -270,9 +260,6 @@ class AttendanceController extends Controller
         return redirect('/stamp_correction_request/list');
     }
 
-    /**
-     * 【FN031〜FN033】一般ユーザーの申請一覧表示
-     */
     public function requestList()
     {
         $userId = auth()->id();
@@ -283,7 +270,7 @@ class AttendanceController extends Controller
             ->where('status', 'pending')
             ->get();
 
-        // ★【追加ライン】2. 承認済みの申請データも一緒に取得します
+        // 2. 承認済みの申請データも一緒に取得します
         $approvedRequests = \App\Models\AttendanceRequest::with('user')
             ->where('user_id', $userId)
             ->where('status', 'approved')
@@ -301,7 +288,6 @@ class AttendanceController extends Controller
      */
     public function updateDetail(Request $request, $id)
     {
-        // ★【最重要修正】修正理由（remarks）が空っぽのときにデータベースエラーになるのを防ぐバリデーション
         $request->validate([
             'remarks' => 'required|string|max:255',
         ], [
@@ -310,7 +296,7 @@ class AttendanceController extends Controller
 
         $attendance = \App\Models\Attendance::findOrFail($id);
 
-        // 仕様書要件：申請テーブル（attendance_requests）にpending状態で一時保存します
+        // 仕様書要件：申請テーブル
         \App\Models\AttendanceRequest::create([
             'user_id' => auth()->id(),
             'attendance_id' => $attendance->id,
@@ -326,9 +312,6 @@ class AttendanceController extends Controller
         return redirect('/stamp_correction_request/list');
     }
 
-    /**
-     * 💡【打刻完全開通】画面からの /attendance/break を受け取り、休憩の開始と終了をデータベースに保存する関数
-     */
     public function breakToggle(Request $request)
     {
         $userId = auth()->id();

@@ -227,13 +227,14 @@ erDiagram
 | 勤怠詳細画面（一般） | `/attendance/detail/{id}` | GET/POST | `AttendanceController` | `detail` / `updateDetail` | 必須 | 勤怠の確認、および修正申請（pending）の送信 |
 | 申請一覧画面（一般） | `/stamp_correction_request/list`| GET | `AttendanceController` | `requestList` | 必須 | 自身が提出した修正申請のタブ切り替え一覧 |
 | マイ勤怠レポート（一般） | `/attendance/report` | GET | `AttendanceReportController` | `index` | 必須 | 過去6ヶ月の実労働・残業時間、今月の異常検知の完全自動集計 |
-| ログイン画面（管理者） | `/admin/login` | GET/POST | `Admin\AttendanceController`| `showLogin` / `login` | 制限なし | 管理者専用のログイン認証 |
-| 勤怠一覧画面（管理者） | `/admin/attendance/list` | GET | `Admin\AttendanceController`| `list` | 必須（管理）| 当日の全スタッフ勤怠日次一覧 |
-| 勤怠詳細画面（管理者） | `/admin/attendance/{id}` | GET/POST | `Admin\AttendanceController`| `detail` / `updateDetail` | 必須（管理）| 管理者によるスタッフ勤怠データの直接修正・更新 |
-| スタッフ一覧画面（管理者） | `/admin/staff/list` | GET | `Admin\AttendanceController`| `staffList` | 必須（管理）| 登録されている全一般スタッフのリスト閲覧 |
-| スタッフ別勤怠一覧（管理者）| `/admin/attendance/staff/{id}` | GET/POST | `Admin\AttendanceController`| `staffAttendance` / `exportCsv` | 必須（管理）| 選択したスタッフの月次一覧閲覧、および時間自動計算CSV出力 |
-| 申請一覧画面（管理者） | `/admin/stamp_correction_request/list`| GET | `Admin\AttendanceController`| `requestList` | 必須（管理）| 全スタッフから提出された承認待ち申請の一覧表示 |
-| 修正申請承認画面（管理者） | `/admin/stamp_correction_request/approve/{id}`| GET/POST | `Admin\AttendanceController`| `approveView` / `approveAction`| 必須（管理）| 申請内容の確認、および承認アクション |
+| ログイン画面（管理者） | `/admin/login` | GET/POST | `Admin\AdminAuthController`| `showLogin` / `login` | 制限なし | 管理者専用のログイン認証 |
+| 勤怠一覧画面（管理者） | `/admin/attendance/list` | GET | `Admin\AdminAttendanceController`| `list` | 必須（管理）| 当日の全スタッフ勤怠日次一覧 |
+| 勤怠詳細画面（管理者） | `/admin/attendance/{id}` | GET/POST | `Admin\AdminAttendanceController`| `detail` / `updateDetail` | 必須（管理）| 管理者によるスタッフ勤怠データの直接修正・更新 |
+| スタッフ一覧画面（管理者） | `/admin/staff/list` | GET | `Admin\AdminAttendanceController`| `staffList` | 必須（管理）| 登録されている全一般スタッフのリスト閲覧 |
+| スタッフ別勤怠一覧（管理者）| `/admin/attendance/staff/{id}` | GET/POST | `Admin\AdminAttendanceController`| `staffAttendance` | 必須（管理）| 選択したスタッフの月次一覧閲覧 |
+| CSVダウンロード（管理者）  | `/admin/attendance/staff/{id}/csv`| POST | `Admin\AdminCsvController` | `exportCsv` | 必須（管理）| 選択したスタッフの月次勤怠データをCSV出力 |
+| 申請一覧画面（管理者） | `/admin/stamp_correction_request/list`| GET | `Admin\AdminApprovalController`| `requestList` | 必須（管理）| 全スタッフから提出された承認待ち申請の一覧表示 |
+| 修正申請承認画面（管理者） | `/admin/stamp_correction_request/approve/{id}`| GET/POST | `Admin\AdminApprovalController`| `approveView` / `approveAction`| 必須（管理）| 申請内容の確認、および承認アクション |
 
 ---
 
@@ -273,13 +274,13 @@ erDiagram
 | `app/Actions/Fortify/CreateNewUser.php` | 会員登録画面（一般ユーザー） | ・`name`: 必須 / 文字列 / 最大255文字<br>・`email`: 必須 / 文字列 / メールアドレス形式 / 最大255文字 / `users`テーブルで重複不可<br>・`password`: 必須 / 文字列 / 最低8文字 / 確認用パスワードと一致 |
 | `app/Http/Requests/LoginRequest.php`<br>※Fortify内部仕様を含む | ログイン画面（一般ユーザー・管理者共通） | ・`email`: 必須 / 文字列 / メールアドレス形式<br>・`password`: 必須 / 文字列 |
 | `app/Http/Controllers/AttendanceController.php` | 勤怠詳細画面（一般・修正申請送信時） | ・`remarks`: 必須（一般スタッフのみ）/ 文字列 / 最大255文字（空欄送信時のDBエラーを完全に防止） |
-| `routes/api.php`（API用バリデーション） | 公開API（新規作成時） | ・`date`: 必須 / 日付形式<br>・`clock_in`: 必須 / 時刻形式（バリデーションエラー時は422エラーと日本語メッセージを返却） |
+| `app/Http/Controllers/Api/AttendanceApiController.php`<br>※API専用コントローラー | 公開API（新規作成時） | ・`date`: 必須 / 日付形式<br>・`clock_in`: 必須 / 時刻形式（バリデーションエラー時は422エラーと日本語メッセージを返却） |
 
 ---
 
 ## 💻 使用技術
 
-- **Language / Framework**: PHP 8.5 / Laravel 11.x
+- **Language / Framework**: PHP 8.2 / Laravel 11.x
 - **Frontend / Styling**: Blade / Tailwind CSS / JavaScript (Vite 経由でのビルド)
 - **Database**: MySQL 8.0
 - **Infrastructure**: Docker / Laravel Sail / Mailpit (旧Mailhog・WSL2環境)

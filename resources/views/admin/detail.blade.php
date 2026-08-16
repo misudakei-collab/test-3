@@ -19,7 +19,6 @@
         </div>
     @endif
 
-    <!-- 見本を完全に再現した大きなカード型の2列テーブルフォーム -->
     <form method="POST" action="/admin/attendance/{{ $attendance->id }}" class="max-w-[900px] mx-auto" novalidate>
         @csrf
 
@@ -35,7 +34,7 @@
                         </td>
                     </tr>
 
-                    <!-- 2. 日付（見本の離れた余白感を再現） -->
+                    <!-- 2. 日付） -->
                     <tr style="height: 64px !important;">
                         <td style="padding-left: 40px !important; font-weight: bold !important; color: #4b5563 !important; background-color: #fafafa !important;">日付</td>
                         <td style="padding-left: 100px !important; font-size: 15px !important; font-weight: 500 !important; color: #111827 !important;">
@@ -80,7 +79,7 @@
                         </tr>
                     @endforeach
 
-                    <!-- 5. 休憩2（見本の追加用空フィールド枠） -->
+                    <!-- 5. 休憩2 -->
                     @php $nextIndex = $attendance->breakTimes->count(); @endphp
                     <tr style="height: 72px !important;">
                         <td style="padding-left: 40px !important; font-weight: bold !important; color: #4b5563 !important; background-color: #fafafa !important;">
@@ -97,7 +96,7 @@
                         </td>
                     </tr>
 
-                    <!-- 6. 備考（見本に完全に合わせたプレーンな高さと横幅） -->
+                    <!-- 6. 備考 -->
                     <tr style="height: 84px !important;">
                         <td style="padding-left: 40px !important; font-weight: bold !important; color: #4b5563 !important; background-color: #fafafa !important; vertical-align: middle !important;">備考</td>
                         <td style="padding: 12px 0 12px 100px !important; vertical-align: middle !important;">

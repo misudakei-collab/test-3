@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-[1200px] mx-auto py-6 select-none" style="font-family: sans-serif !important;">
 
-    <!-- ページタイトル（公式見本通り：スタッフ名を表示） -->
+    <!-- ページタイトル -->
     <div class="flex items-center mb-6 pl-1" style="gap: 16px !important;">
         <div style="width: 4px !important; height: 28px !important; background-color: #000000 !important; border-radius: 9999px !important;"></div>
         <h1 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
@@ -12,7 +12,7 @@
     </div>
 
 
-    <!-- 【公式見本完全一致】日付コントロールバー（前月・翌月選択型） -->
+    <!-- 日付コントロールバー（前月・翌月選択型） -->
     <div class="flex justify-center mb-8">
         <div class="flex items-center bg-white border border-gray-200 shadow-sm px-4 py-1" style="height: 46px !important; border-radius: 6px !important; width: 480px !important; justify-content: space-between !important;">
             <a href="?month={{ \Carbon\Carbon::parse($currentMonth)->subMonth()->format('Y-m') }}" 
@@ -29,7 +29,7 @@
         </div>
     </div>
 
-    <!-- 【公式デザイン】角丸・シャドウ付きカードテーブル（月次一覧専用） -->
+    <!-- 角丸・シャドウ付きカードテーブル（月次一覧専用） -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden max-w-[900px] mx-auto" style="box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;">
         <table class="w-full text-left text-sm border-collapse">
             <thead class="bg-gray-50/50 border-b border-gray-200">
@@ -88,7 +88,7 @@
         </table>
     </div>
 
-    <!-- 【公式見本完全一致】右下に配置された黒四角型のCSV出力ボタン -->
+    <!-- 右下に配置された黒四角型のCSV出力ボタン -->
     <div class="flex justify-end mt-6 max-w-[900px] mx-auto">
         <form action="/admin/attendance/staff/{{ $user->id }}/csv" method="POST" style="margin: 0 !important; padding: 0 !important;">
             @csrf
