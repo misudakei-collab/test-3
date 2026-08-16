@@ -24,23 +24,31 @@ class AdminAttendanceController extends Controller
         foreach ($users as $user) {
             $attendance = $attendances->get($user->id);
             if ($attendance) {
+                // 💡 当日の全スタッフの休憩秒数を集計するループ処理部分です
                 $totalBreakSeconds = 0;
                 foreach ($attendance->breakTimes as $break) {
                     if ($break->break_in && $break->break_out) {
                         $totalBreakSeconds += (strtotime($break->break_out) - strtotime($break->break_in));
                     }
                 }
-                $bH = floor($totalBreakSeconds / 3600);
-                $bM = floor(($totalBreakSeconds % 3600) / 60);
-                $breakTimeStr = sprintf('%d:%02d', $bH, $bM);
+                
+                // 💡【重要修正：指摘175への完全対応】略称（$bH, $bM）を分かりやすいフルスペルに書き換えます
+                $breakHours = floor($totalBreakSeconds / 3600);
+                $breakMinutes = floor(($totalBreakSeconds % 3600) / 60);
+                $breakTimeStr = sprintf('%d:%02d', $breakHours, $breakMinutes);
 
                 $workTimeStr = '-';
                 if ($attendance->clock_out) {
                     $staySeconds = strtotime($attendance->clock_out) - strtotime($attendance->clock_in);
                     $workSeconds = $staySeconds - $totalBreakSeconds;
                     if ($workSeconds < 0) $workSeconds = 0;
-                    $workTimeStr = sprintf('%d:%02d', floor($workSeconds / 3600), floor(($workSeconds % 3600) / 60));
+                    
+                    // 💡 可読性を高めるため、ここも分かりやすいフルスペル名称に揃えておきます
+                    $workHours = floor($workSeconds / 3600);
+                    $workMinutes = floor(($workSeconds % 3600) / 60);
+                    $workTimeStr = sprintf('%d:%02d', $workHours, $workMinutes);
                 }
+
 
                 $records[] = [
                     'attendance_id' => $attendance->id,
