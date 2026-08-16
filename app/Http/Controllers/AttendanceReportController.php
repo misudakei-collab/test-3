@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\User;
 use Carbon\Carbon;
 
 class AttendanceReportController extends Controller
@@ -97,16 +96,24 @@ class AttendanceReportController extends Controller
             $totalOvertimeSecondsAll += $monthOvertimeSeconds;
             $totalDaysAll += $attendances->count();
 
-            $wH = floor($monthWorkSeconds / 3600);
-            $wM = floor(($monthWorkSeconds % 3600) / 60);
-            $oH = floor($monthOvertimeSeconds / 3600);
-            $oM = floor(($monthOvertimeSeconds % 3600) / 60);
+            $workHours = floor($monthWorkSeconds / 3600);
+            $workMinutes = floor(($monthWorkSeconds % 3600) / 60);
+            $overtimeHours = floor($monthOvertimeSeconds / 3600);
+            $overtimeMinutes = floor(($monthOvertimeSeconds % 3600) / 60);
 
             $monthly_trends[] = [
                 'month' => $month,
-                'work' => "${wH}h ${wM}m",
-                'overtime' => "${oH}h ${oM}m",
+                'work' => "${workHours}h ${workMinutes}m",
+                'overtime' => "${overtimeHours}h ${overtimeMinutes}m",
             ];
+        }
+
+        // 基本サマリーの総集計
+        $totalWorkHours = floor($totalWorkSecondsAll / 3600);
+        $totalWorkMinutes = floor(($totalWorkSecondsAll % 3600) / 60);
+        
+        $totalOvertimeHours = floor($totalOvertimeSecondsAll / 3600);
+        $totalOvertimeMinutes = floor(($totalOvertimeSecondsAll % 3600) / 60);
         }
 
         // サマリー用の最終総合変換

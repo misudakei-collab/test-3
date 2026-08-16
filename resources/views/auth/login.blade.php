@@ -3,7 +3,7 @@
 @section('content')
 <div class="flex flex-col items-center justify-center pt-10">
     <!-- タイトル -->
-    <h2 class="text-xl font-bold text-gray-900 mb-10 tracking-wider">ログイン</h2>
+    <h1 class="text-xl font-bold text-gray-900 mb-10 tracking-wider">ログイン</h1>
 
     <!-- ログインフォーム -->
     <form method="POST" action="{{ route('login') }}" class="w-[500px]" novalidate>

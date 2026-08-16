@@ -6,10 +6,11 @@
     <!-- ページタイトル（公式見本通りの配置・縦線） -->
     <div class="flex items-center mb-10 pl-1" style="gap: 16px !important;">
         <div style="width: 4px !important; height: 28px !important; background-color: #000000 !important; border-radius: 9999px !important;"></div>
-        <h2 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
+        <h1 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
             勤怠詳細
-        </h2>
+        </h1>
     </div>
+
 
     <!-- 修正成功時のアラート表示 -->
     @if(session('message'))

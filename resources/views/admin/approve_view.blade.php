@@ -6,10 +6,11 @@
     <!-- ページタイトル（公式見本通り、見出しは「勤怠詳細」仕様） -->
     <div class="flex items-center mb-10 pl-1" style="gap: 16px !important;">
         <div style="width: 4px !important; height: 28px !important; background-color: #000000 !important; border-radius: 9999px !important;"></div>
-        <h2 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
-            勤怠詳細
-        </h2>
+        <h1 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
+        勤怠詳細
+    </h1>
     </div>
+
 
     <!-- 見本を完全に再現した大きなカード型の2列テーブル確認フォーム -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden max-w-[900px] mx-auto" style="box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;">

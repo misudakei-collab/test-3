@@ -4,35 +4,36 @@
 <div class="max-w-[1200px] mx-auto py-6 select-none" style="font-family: sans-serif !important;">
 
     <!-- ページタイトル -->
-    <div class="flex items-center mb-10 pl-1" style="gap: 16px !important;">
+    <div class="flex items-center mb-6 pl-1" style="gap: 16px !important;">
         <div style="width: 4px !important; height: 28px !important; background-color: #000000 !important; border-radius: 9999px !important;"></div>
-        <h2 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
+        <h1 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
             申請一覧
-        </h2>
+        </h1>
     </div>
+
 
     <!-- 💡 現在のタブ状態をURLのパラメータから判定 -->
     @php
         $currentTab = request()->get('tab', 'pending');
     @endphp
 
-    <!-- 【公式見本完全一致・クリック連動化】タブ切り替えメニュー -->
-    <div style="display: flex !important; gap: 40px !important; border-bottom: 1px solid #d1d5db !important; padding-bottom: 8px !important; margin-bottom: 32px !important; padding-left: 8px !important;">
-        <!-- 承認待ちタブ -->
-        <a href="?tab=pending" style="font-size: 14px !important; font-weight: bold !important; color: {{ $currentTab === 'pending' ? '#000000' : '#9ca3af' }} !important; cursor: pointer !important; position: relative !important; text-decoration: none !important;">
+    <!-- 【公式見本完全一致】position依存を排除し、border-bで美しく実装したタブ切り替えバー -->
+    <div class="flex border-b border-gray-200 mb-8 pl-1" style="gap: 32px !important;">
+        <!-- 1. 承認待ちタブ -->
+        <a href="?status=pending" 
+           class="pb-3 text-base font-bold tracking-wider transition-colors duration-150 no-underline {{ $status === 'pending' ? 'text-gray-900 border-b-2 border-black' : 'text-gray-400 hover:text-gray-600' }}"
+           style="margin-bottom: -1px !important;">
             承認待ち
-            @if($currentTab === 'pending')
-                <div style="position: absolute !important; bottom: -9px !important; left: 0 !important; width: 100% !important; height: 2px !important; background-color: #000000 !important;"></div>
-            @endif
         </a>
-        <!-- 承認済みタブ -->
-        <a href="?tab=approved" style="font-size: 14px !important; font-weight: bold !important; color: {{ $currentTab === 'approved' ? '#000000' : '#9ca3af' }} !important; cursor: pointer !important; position: relative !important; text-decoration: none !important;">
+
+        <!-- 2. 承認済みタブ -->
+        <a href="?status=approved" 
+           class="pb-3 text-base font-bold tracking-wider transition-colors duration-150 no-underline {{ $status === 'approved' ? 'text-gray-900 border-b-2 border-black' : 'text-gray-400 hover:text-gray-600' }}"
+           style="margin-bottom: -1px !important;">
             承認済み
-            @if($currentTab === 'approved')
-                <div style="position: absolute !important; bottom: -9px !important; left: 0 !important; width: 100% !important; height: 2px !important; background-color: #000000 !important;"></div>
-            @endif
         </a>
     </div>
+
 
     <!-- カード型のスタイリッシュテーブル -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden" style="box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;">

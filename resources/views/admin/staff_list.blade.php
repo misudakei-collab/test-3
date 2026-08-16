@@ -4,12 +4,13 @@
 <div class="max-w-[1200px] mx-auto py-6 select-none" style="font-family: sans-serif !important;">
 
     <!-- ページタイトル（公式見本通りの配置・縦線） -->
-    <div class="flex items-center mb-12 pl-1" style="gap: 16px !important;">
+    <div class="flex items-center mb-6 pl-1" style="gap: 16px !important;">
         <div style="width: 4px !important; height: 28px !important; background-color: #000000 !important; border-radius: 9999px !important;"></div>
-        <h2 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
+        <h1 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
             スタッフ一覧
-        </h2>
+        </h1>
     </div>
+
 
     <!-- 【公式デザイン】角丸・柔らかな影付きのスタイリッシュテーブル -->
     <div class="bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden" style="box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05) !important;">

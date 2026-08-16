@@ -6,10 +6,11 @@
     <!-- ページタイトル（公式見本通りの配置・縦線） -->
     <div class="flex items-center mb-6 pl-1" style="gap: 16px !important;">
         <div style="width: 4px !important; height: 28px !important; background-color: #000000 !important; border-radius: 9999px !important;"></div>
-        <h2 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
-            {{ \Carbon\Carbon::parse($currentDate)->format('Y年n月j日') }}の勤怠
-        </h2>
+        <h1 class="text-2xl font-bold tracking-wider text-gray-900" style="margin: 0 !important; font-size: 24px !important;">
+            勤怠一覧
+        </h1>
     </div>
+
 
     <!-- 【公式見本完全一致】日付コントロールバー（前日・翌日・カレンダーアイコン付きホワイトカード） -->
     <div class="flex justify-center mb-8">
